@@ -1,0 +1,5 @@
+[attr]generated-code-file text eol=lf -diff -gitlab-diff linguist-generated=true
+
+pkg/api/** generated-code-file
+*.mock.go generated-code-file
+*.sum generated-code-file
