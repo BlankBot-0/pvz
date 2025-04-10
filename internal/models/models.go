@@ -21,9 +21,10 @@ type Reception struct {
 }
 
 type User struct {
-	Id    string
-	Email string
-	Role  string
+	Id           string
+	Email        string
+	PasswordHash string
+	Role         string
 }
 
 type ReceptionInfo struct {

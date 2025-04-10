@@ -2757,7 +2757,7 @@ func (m *ListPVZResponseReceptionInfo) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ListPVZResponseReceptionInfoValidationError{
-						field:  fmt.Sprintf("Products[%v]", idx),
+						field:  fmt.Sprintf("ProductsByReceptionId[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2765,7 +2765,7 @@ func (m *ListPVZResponseReceptionInfo) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ListPVZResponseReceptionInfoValidationError{
-						field:  fmt.Sprintf("Products[%v]", idx),
+						field:  fmt.Sprintf("ProductsByReceptionId[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2774,7 +2774,7 @@ func (m *ListPVZResponseReceptionInfo) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ListPVZResponseReceptionInfoValidationError{
-					field:  fmt.Sprintf("Products[%v]", idx),
+					field:  fmt.Sprintf("ProductsByReceptionId[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -2923,7 +2923,7 @@ func (m *ListPVZResponsePvzInfo) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ListPVZResponsePvzInfoValidationError{
-						field:  fmt.Sprintf("Receptions[%v]", idx),
+						field:  fmt.Sprintf("ReceptionsByPVZId[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2931,7 +2931,7 @@ func (m *ListPVZResponsePvzInfo) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ListPVZResponsePvzInfoValidationError{
-						field:  fmt.Sprintf("Receptions[%v]", idx),
+						field:  fmt.Sprintf("ReceptionsByPVZId[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2940,7 +2940,7 @@ func (m *ListPVZResponsePvzInfo) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ListPVZResponsePvzInfoValidationError{
-					field:  fmt.Sprintf("Receptions[%v]", idx),
+					field:  fmt.Sprintf("ReceptionsByPVZId[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
