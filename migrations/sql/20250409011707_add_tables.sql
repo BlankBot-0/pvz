@@ -2,32 +2,32 @@
 -- +goose StatementBegin
 create table users
 (
-    id uuid primary key,
-    email string,
+    id            uuid primary key,
+    email         string,
     password_hash string,
-    role string
+    role          string
 );
 
 create table pvzs
 (
-    id uuid primary key,
+    id                uuid primary key,
     registration_date timestamp default now(),
-    city string
+    city              string
 );
 
 create table receptions
 (
-    id uuid primary key,
-    date timestamp default now(),
+    id     uuid primary key,
+    date   timestamp default now(),
     status string,
     pvz_id uuid,
 );
 
 create table products
 (
-    id uuid primary key,
-    date timestamp default now(),
-    type string,
+    id           uuid primary key,
+    date         timestamp default now(),
+    type         string,
 
     reception_id uuid
 );
