@@ -1,0 +1,15 @@
+env: "local" # local, dev, prod
+dsn: "postgresql://postgres:password@db:5432/shop"
+auth:
+  private_key: "secret_key"
+  expiration_time: "10m"
+grpc_server:
+  port: 3000
+http_server:
+  port: 8080
+  timeout: "4s"
+  idle_timeout: "60s"
+jaeger:
+  host: "localhost:6831"
+  service_name: "pvz-service"
+  log_spans: false
