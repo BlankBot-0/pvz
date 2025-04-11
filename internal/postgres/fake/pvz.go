@@ -12,6 +12,7 @@ var _ postgres.RWPVZ = &PVZRepoFake{}
 
 type PVZRepoFake struct {
 	Pvzs                  []models.PVZ
+	PvzsById              map[string]models.PVZ
 	ReceptionsByPVZId     map[string]map[string]models.Reception
 	ReceptionsById        map[string]models.Reception
 	ProductsByReceptionId map[string]map[string]models.Product
@@ -28,10 +29,19 @@ type PVZRepoFake struct {
 	AddProductToReceptionErr     error
 	DeleteProductErr             error
 	ListPVZErr                   error
+	GetPVZErr                    error
 	ListReceptionByPVZIdErr      error
 	GetLastReceptionByPVZErr     error
 	ListProductsByReceptionIdErr error
 	GetLastProductByReceptionErr error
+}
+
+func (p PVZRepoFake) GetPVZ(ctx context.Context, pvzId string) (models.PVZ, error) {
+	if p.AddPVZErr != nil {
+		return models.PVZ{}, p.AddPVZErr
+	}
+
+	return p.PvzsById[pvzId], nil
 }
 
 func (p PVZRepoFake) AddPVZ(_ context.Context, city string) (models.PVZ, error) {
@@ -46,6 +56,7 @@ func (p PVZRepoFake) AddPVZ(_ context.Context, city string) (models.PVZ, error) 
 	}
 
 	p.Pvzs = append(p.Pvzs, pvz)
+	p.PvzsById[pvz.Id] = p.Pvzs[len(p.Pvzs)-1]
 	return pvz, nil
 }
 
@@ -122,16 +133,15 @@ func (p PVZRepoFake) ListPVZ(_ context.Context, startDate time.Time, endDate tim
 	return p.Pvzs, nil
 }
 
-func (p PVZRepoFake) ListReceptionsByPVZId(_ context.Context, pvzIds []string) ([][]models.Reception, error) {
+func (p PVZRepoFake) ListReceptionsByPVZId(_ context.Context, pvzIds []string) ([]models.Reception, error) {
 	if p.ListReceptionByPVZIdErr != nil {
 		return nil, p.ListReceptionByPVZIdErr
 	}
 
-	receptionsByPVZId := make([][]models.Reception, len(pvzIds))
-	for i, pvzId := range pvzIds {
-		receptionsByPVZId[i] = make([]models.Reception, 0, len(p.ReceptionsByPVZId[pvzId]))
+	receptionsByPVZId := make([]models.Reception, 0)
+	for _, pvzId := range pvzIds {
 		for _, reception := range p.ReceptionsByPVZId[pvzId] {
-			receptionsByPVZId[i] = append(receptionsByPVZId[i], reception)
+			receptionsByPVZId = append(receptionsByPVZId, reception)
 		}
 	}
 	return receptionsByPVZId, nil
@@ -146,16 +156,15 @@ func (p PVZRepoFake) GetLastReceptionByPVZ(_ context.Context, pvzId string) (mod
 	return p.ReceptionsById[recId], nil
 }
 
-func (p PVZRepoFake) ListProductsByReceptionId(_ context.Context, receptionIds []string) ([][]models.Product, error) {
+func (p PVZRepoFake) ListProductsByReceptionId(_ context.Context, receptionIds []string) ([]models.Product, error) {
 	if p.ListProductsByReceptionIdErr != nil {
 		return nil, p.ListProductsByReceptionIdErr
 	}
 
-	products := make([][]models.Product, len(receptionIds))
-	for i, receptionId := range receptionIds {
-		products[i] = make([]models.Product, 0, len(p.ProductsByReceptionId[receptionId]))
+	products := make([]models.Product, 0)
+	for _, receptionId := range receptionIds {
 		for _, product := range p.ProductsByReceptionId[receptionId] {
-			products[i] = append(products[i], product)
+			products = append(products, product)
 		}
 	}
 	return products, nil

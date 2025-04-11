@@ -13,9 +13,10 @@ type (
 	// ROPVZ is a read-only repository
 	ROPVZ interface {
 		ListPVZ(ctx context.Context, startDate time.Time, endDate time.Time, offset uint32, limit uint32) ([]models.PVZ, error)
-		ListReceptionsByPVZId(ctx context.Context, pvzIds []string) ([][]models.Reception, error)
+		GetPVZ(ctx context.Context, pvzId string) (models.PVZ, error)
+		ListReceptionsByPVZId(ctx context.Context, pvzIds []string) ([]models.Reception, error)
 		GetLastReceptionByPVZ(ctx context.Context, pvzId string) (models.Reception, error)
-		ListProductsByReceptionId(ctx context.Context, receptionIds []string) ([][]models.Product, error)
+		ListProductsByReceptionId(ctx context.Context, receptionIds []string) ([]models.Product, error)
 		GetLastProductByReception(ctx context.Context, receptionId string) (models.Product, error)
 	}
 

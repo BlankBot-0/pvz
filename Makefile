@@ -146,7 +146,7 @@ DATABASE_NAME = "shop"
 
 PHONY: migrate
 migrate: .install_goose
-	$(GOOSE) -dir ./migrations/sql postgres postgresql://postgres:password@localhost:5432/shop up
+	$(GOOSE) -dir ./migrations/sql postgres postgresql://postgres:password@localhost:5432/pvz up
 
 PHONY: reset-migrations
 reset-migrations: .install_goose

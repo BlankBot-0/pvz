@@ -3,31 +3,31 @@
 create table users
 (
     id            uuid primary key,
-    email         string,
-    password_hash string,
-    role          string
+    email         text,
+    password_hash text,
+    role          text
 );
 
 create table pvzs
 (
     id                uuid primary key,
     registration_date timestamp default now(),
-    city              string
+    city              text
 );
 
 create table receptions
 (
     id     uuid primary key,
     date   timestamp default now(),
-    status string,
-    pvz_id uuid,
+    status text,
+    pvz_id uuid
 );
 
 create table products
 (
     id           uuid primary key,
     date         timestamp default now(),
-    type         string,
+    type         text,
 
     reception_id uuid
 );
