@@ -38,3 +38,8 @@ type Product struct {
 	Type        string
 	ReceptionId string
 }
+
+const (
+	ReceptionStatusInProgress = "in_progress"
+	ReceptionStatusClosed     = "closed"
+)

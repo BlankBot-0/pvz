@@ -11,7 +11,7 @@ import (
 func (s *Service) ListPVZ(ctx context.Context, request *pvzpb.ListPVZRequest) (*pvzpb.ListPVZResponse, error) {
 	res, err := s.PVZ.ListPVZ(
 		ctx,
-		request.StartDate.AsTime().Unix(), request.EndDate.AsTime().Unix(),
+		request.StartDate.AsTime(), request.EndDate.AsTime(),
 		request.Page, request.Limit,
 	)
 	if err != nil {
