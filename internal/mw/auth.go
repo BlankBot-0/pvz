@@ -44,12 +44,7 @@ func AuthInterceptor(verifier tokenVerifier) grpc.UnaryServerInterceptor {
 		span, ctx := opentracing.StartSpanFromContext(ctx, "AuthInterceptor")
 		defer span.Finish()
 
-		switch info.FullMethod {
-		case pvzpb.PVZService_DummyLogin_FullMethodName:
-			return handler(ctx, req)
-		case pvzpb.PVZService_Register_FullMethodName:
-			return handler(ctx, req)
-		case pvzpb.PVZService_GetPVZList_FullMethodName:
+		if _, ok := handlerWhitelistAuth[info.FullMethod]; ok {
 			return handler(ctx, req)
 		}
 
@@ -64,4 +59,10 @@ func AuthInterceptor(verifier tokenVerifier) grpc.UnaryServerInterceptor {
 
 		return handler(auth.SetUserRoleToCtx(ctx, claims.UserRole()), req)
 	}
+}
+
+var handlerWhitelistAuth = map[string]struct{}{
+	pvzpb.PVZService_DummyLogin_FullMethodName: {},
+	pvzpb.PVZService_Register_FullMethodName:   {},
+	pvzpb.PVZService_GetPVZList_FullMethodName: {},
 }
