@@ -100,11 +100,19 @@ func (p *PVZ) GetPVZList(ctx context.Context) ([]models.PVZ, error) {
 
 	return pvzs, nil
 }
-func (p *PVZ) CreatePVZ(ctx context.Context, city string) (models.PVZ, error) {
+func (p *PVZ) CreatePVZ(ctx context.Context, id, city string) (models.PVZ, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/CreatePVZ")
 	defer span.Finish()
 
-	pvz, err := p.Deps.Repo.RWPvz().AddPVZ(ctx, city)
+	validCity, err := p.Deps.Repo.ROPvz().CheckExistsCity(ctx, city)
+	if err != nil {
+		return models.PVZ{}, fmt.Errorf("create pvz: %w", err)
+	} else if !validCity {
+		return models.PVZ{}, ErrCityNotFound
+	}
+
+	// TODO: check id for emptiness
+	pvz, err := p.Deps.Repo.RWPvz().AddPVZ(ctx, id, city)
 	if err != nil {
 		return pvz, fmt.Errorf("create pvz: %w", err)
 	}
@@ -179,8 +187,15 @@ func (p *PVZ) CreateProduct(ctx context.Context, productType, pvzId string) (mod
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/CreateProduct")
 	defer span.Finish()
 
+	existsProductType, err := p.Deps.Repo.ROPvz().CheckExistsProductType(ctx, productType)
+	if err != nil {
+		return models.Product{}, fmt.Errorf("create product: %w", err)
+	} else if !existsProductType {
+		return models.Product{}, ErrProductTypeNotFound
+	}
+
 	var product models.Product
-	err := p.Deps.Repo.RunInTx(ctx, func(tx postgres.RepositoryProvider) error {
+	err = p.Deps.Repo.RunInTx(ctx, func(tx postgres.RepositoryProvider) error {
 		_, err := tx.ROPvz().GetPVZ(ctx, pvzId)
 		if errors.Is(err, postgres.ErrNotFound) {
 			return ErrPVZNotFound

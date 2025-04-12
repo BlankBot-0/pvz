@@ -25,7 +25,7 @@ func (ro *roPVZ) ListPVZ(ctx context.Context, startDate, endDate time.Time, offs
 
 	var pvzs []models.PVZ
 	if err := pgxscan.Select(ctx, ro.query, pvzs, q, startDate, endDate, limit, offset); err != nil {
-		return pvzs, formatError(queryName, err)
+		return pvzs, handleError(queryName, err)
 	}
 
 	return pvzs, nil
@@ -43,7 +43,7 @@ func (ro *roPVZ) ListReceptionsByPVZId(ctx context.Context, pvzIds []string) ([]
 
 	var receptions []models.Reception
 	if err := pgxscan.Select(ctx, ro.query, receptions, q, pvzIds); err != nil {
-		return nil, formatError(queryName, err)
+		return nil, handleError(queryName, err)
 	}
 
 	return receptions, nil
@@ -62,10 +62,8 @@ func (ro *roPVZ) GetLastReceptionByPVZ(ctx context.Context, pvzId string) (model
 		limit 1`
 
 	var reception models.Reception
-	if err := pgxscan.Get(ctx, ro.query, &reception, q, pvzId); errIsNoRows(err) {
-		return reception, formatError(queryName, ErrNotFound)
-	} else if err != nil {
-		return reception, formatError(queryName, err)
+	if err := pgxscan.Get(ctx, ro.query, &reception, q, pvzId); err != nil {
+		return reception, handleError(queryName, err)
 	}
 
 	return reception, nil
@@ -83,7 +81,7 @@ func (ro *roPVZ) ListProductsByReceptionId(ctx context.Context, receptionIds []s
 
 	var products []models.Product
 	if err := pgxscan.Select(ctx, ro.query, products, q, receptionIds); err != nil {
-		return nil, formatError(queryName, err)
+		return nil, handleError(queryName, err)
 	}
 
 	return products, nil
@@ -102,10 +100,8 @@ func (ro *roPVZ) GetLastProductByReception(ctx context.Context, receptionId stri
 		limit 1`
 
 	var product models.Product
-	if err := pgxscan.Get(ctx, ro.query, &product, q, receptionId); errIsNoRows(err) {
-		return product, formatError(queryName, ErrNotFound)
-	} else if err != nil {
-		return product, formatError(queryName, err)
+	if err := pgxscan.Get(ctx, ro.query, &product, q, receptionId); err != nil {
+		return product, handleError(queryName, err)
 	}
 
 	return product, nil
@@ -122,13 +118,42 @@ func (ro *roPVZ) GetPVZ(ctx context.Context, pvzId string) (models.PVZ, error) {
 		where id = $1`
 
 	var pvz models.PVZ
-	if err := pgxscan.Get(ctx, ro.query, q, pvzId); errIsNoRows(err) {
-		return pvz, formatError(queryName, ErrNotFound)
-	} else if err != nil {
-		return pvz, formatError(queryName, err)
+	if err := pgxscan.Get(ctx, ro.query, q, pvzId); err != nil {
+		return pvz, handleError(queryName, err)
 	}
 
 	return pvz, nil
+}
+
+func (ro *roPVZ) CheckExistsCity(ctx context.Context, city string) (bool, error) {
+	const queryName = "PVZRepository/CheckExistsCity"
+	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
+	defer span.Finish()
+
+	const q = `
+		select exists(select 1 from cities where name = $1)
+		`
+
+	var exists bool
+	if err := pgxscan.Get(ctx, ro.query, q, city); err != nil {
+		return false, handleError(queryName, err)
+	}
+	return exists, nil
+}
+
+func (ro *roPVZ) CheckExistsProductType(ctx context.Context, productType string) (bool, error) {
+	const queryName = "PVZRepository/CheckExistsProductType"
+	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
+	defer span.Finish()
+	const q = `
+		select exists(select 1 from product_types where name = $1)
+		`
+
+	var exists bool
+	if err := pgxscan.Get(ctx, ro.query, q, productType); err != nil {
+		return false, handleError(queryName, err)
+	}
+	return exists, nil
 }
 
 type rwPVZ struct {
@@ -136,19 +161,19 @@ type rwPVZ struct {
 	exec executor
 }
 
-func (rw *rwPVZ) AddPVZ(ctx context.Context, city string) (models.PVZ, error) {
+func (rw *rwPVZ) AddPVZ(ctx context.Context, id, city string) (models.PVZ, error) {
 	const queryName = "PVZRepository/AddPVZ"
 	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
 	defer span.Finish()
 
 	const q = `
 		insert into pvzs (id, city)
-		values (gen_random_uuid(), $1)
+		values ($1, $2)
 		returning id, registration_date, city`
 
 	var pvz models.PVZ
-	if err := pgxscan.Get(ctx, rw.exec, pvz, q, city); err != nil {
-		return pvz, formatError(queryName, err)
+	if err := pgxscan.Get(ctx, rw.exec, pvz, q, id, city); err != nil {
+		return pvz, handleError(queryName, err)
 	}
 
 	return pvz, nil
@@ -166,7 +191,7 @@ func (rw *rwPVZ) AddReception(ctx context.Context, pvzId, status string) (models
 
 	var reception models.Reception
 	if err := pgxscan.Get(ctx, rw.exec, &reception, q, pvzId, status); err != nil {
-		return reception, formatError(queryName, err)
+		return reception, handleError(queryName, err)
 	}
 
 	return reception, nil
@@ -184,7 +209,7 @@ func (rw *rwPVZ) UpdateReception(ctx context.Context, receptionId, status string
 
 	var reception models.Reception
 	if err := pgxscan.Get(ctx, rw.exec, &reception, q, receptionId, status); err != nil {
-		return reception, formatError(queryName, err)
+		return reception, handleError(queryName, err)
 	}
 
 	return reception, nil
@@ -202,7 +227,7 @@ func (rw *rwPVZ) AddProductToReception(ctx context.Context, productType, recepti
 
 	var product models.Product
 	if err := pgxscan.Get(ctx, rw.exec, &product, q, productType, receptionId); err != nil {
-		return product, formatError(queryName, err)
+		return product, handleError(queryName, err)
 	}
 
 	return product, nil
@@ -217,7 +242,7 @@ func (rw *rwPVZ) DeleteProduct(ctx context.Context, productId string) error {
 		delete from products where id = $1`
 
 	if _, err := rw.exec.Exec(ctx, q, productId); err != nil {
-		return formatError(queryName, err)
+		return handleError(queryName, err)
 	}
 	return nil
 }

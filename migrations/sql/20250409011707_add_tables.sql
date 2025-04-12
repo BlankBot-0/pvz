@@ -3,7 +3,7 @@
 create table users
 (
     id            uuid primary key,
-    email         text,
+    email         text unique,
     password_hash text,
     role          text
 );

@@ -148,6 +148,10 @@ PHONY: migrate
 migrate: .install_goose
 	$(GOOSE) -dir ./migrations/sql postgres postgresql://postgres:password@localhost:5432/pvz up
 
+PHONY: fast-migrate
+fast-migrate:
+	$(GOOSE) -dir ./migrations/sql postgres postgresql://postgres:password@localhost:5432/pvz up
+
 PHONY: reset-migrations
 reset-migrations: .install_goose
 	$(GOOSE) -dir ${MIGRATIONS_DIR} postgres postgresql://postgres:password@localhost:5432/${DATABASE_NAME} reset

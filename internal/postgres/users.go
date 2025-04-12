@@ -23,9 +23,9 @@ func (ro *roUsers) UserById(ctx context.Context, userId string) (models.User, er
 
 	var user models.User
 	if err := pgxscan.Get(ctx, ro.query, &user, q, userId); errIsNoRows(err) {
-		return user, formatError(queryName, ErrNotFound)
+		return user, handleError(queryName, ErrNotFound)
 	} else if err != nil {
-		return user, formatError(queryName, err)
+		return user, handleError(queryName, err)
 	}
 
 	return user, nil
@@ -43,9 +43,9 @@ func (ro *roUsers) UserByEmail(ctx context.Context, email string) (models.User, 
 
 	var user models.User
 	if err := pgxscan.Get(ctx, ro.query, &user, q, email); errIsNoRows(err) {
-		return user, formatError(queryName, ErrNotFound)
+		return user, handleError(queryName, ErrNotFound)
 	} else if err != nil {
-		return user, formatError(queryName, err)
+		return user, handleError(queryName, err)
 	}
 
 	return user, nil
@@ -62,15 +62,15 @@ func (rw *rwUsers) CreateUser(ctx context.Context, email, passwordHash, role str
 	defer span.Finish()
 
 	const q = `
-		insert into users(email, password_hash, role)
-		values ($1, $2, $3)
+		insert into users(id, email, password_hash, role)
+		values (gen_random_uuid(), $1, $2, $3)
 		returning id`
 
 	var id string
 	if err := pgxscan.Get(ctx, rw.exec, &id, q, email, passwordHash, role); isUniqueViolated(err) {
-		return "", formatError(queryName, ErrAlreadyExists)
+		return "", handleError(queryName, ErrAlreadyExists)
 	} else if err != nil {
-		return "", formatError(queryName, err)
+		return "", handleError(queryName, err)
 	}
 
 	return id, nil

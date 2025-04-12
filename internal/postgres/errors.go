@@ -14,9 +14,13 @@ var (
 	ErrAlreadyExists = errors.New("entity already exists")
 )
 
-func formatError(queryName string, err error) error {
+func handleError(queryName string, err error) error {
 	if err == nil {
 		return nil
+	} else if errIsNoRows(err) {
+		return ErrNotFound
+	} else if isUniqueViolated(err) {
+		return ErrAlreadyExists
 	}
 	return fmt.Errorf("executing %s: %w", queryName, err)
 }

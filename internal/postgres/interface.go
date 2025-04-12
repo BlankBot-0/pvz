@@ -18,11 +18,14 @@ type (
 		GetLastReceptionByPVZ(ctx context.Context, pvzId string) (models.Reception, error)
 		ListProductsByReceptionId(ctx context.Context, receptionIds []string) ([]models.Product, error)
 		GetLastProductByReception(ctx context.Context, receptionId string) (models.Product, error)
+
+		CheckExistsCity(ctx context.Context, city string) (bool, error)
+		CheckExistsProductType(ctx context.Context, productType string) (bool, error)
 	}
 
 	// RWPVZ is a read-write repository
 	RWPVZ interface {
-		AddPVZ(ctx context.Context, city string) (models.PVZ, error)
+		AddPVZ(ctx context.Context, id, city string) (models.PVZ, error)
 		AddReception(ctx context.Context, pvzId string, status string) (models.Reception, error)
 		UpdateReception(ctx context.Context, receptionId string, status string) (models.Reception, error)
 		AddProductToReception(ctx context.Context, productType string, receptionId string) (models.Product, error)
