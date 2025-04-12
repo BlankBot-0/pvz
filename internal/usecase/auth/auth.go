@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"golang.org/x/crypto/bcrypt"
-	"pvz/internal/auth"
 	"pvz/internal/models"
 	"pvz/internal/postgres"
 )
@@ -38,13 +37,13 @@ func (a *AuthService) UserToken(ctx context.Context, email, password string) (st
 
 	switch {
 	case errors.Is(err, postgres.ErrNotFound):
-		return "", fmt.Errorf("authorization: %w", err)
+		return "", ErrUserNotFound
 	case err != nil:
 		return "", fmt.Errorf("could not get user while attempting to authorize: %w", err)
 	default:
 		err := bcrypt.CompareHashAndPassword([]byte(tokenInfo.PasswordHash), []byte(password))
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return "", fmt.Errorf("incorrect password: %w", auth.ErrUnauthorized)
+			return "", ErrIncorrectPassword
 		} else if err != nil {
 			return "", fmt.Errorf("failed to verify password: %w", err)
 		}
