@@ -1,5 +1,5 @@
 env: "local" # local, dev, prod
-dsn: "postgresql://postgres:password@db:5432/shop"
+dsn: "postgresql://postgres:password@db:5432/pvz"
 auth:
   private_key: "secret_key"
   expiration_time: "10m"
