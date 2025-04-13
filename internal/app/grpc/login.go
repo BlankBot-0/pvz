@@ -10,6 +10,9 @@ import (
 )
 
 func (s *Service) Login(ctx context.Context, request *pvzpb.LoginRequest) (*pvzpb.LoginResponse, error) {
+	if err := request.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 	res, err := s.Auth.UserToken(ctx, request.Email, request.Password)
 	if errors.Is(err, auth.ErrUserNotFound) {
 		return nil, status.Error(codes.Unauthenticated, "user with such email not found")

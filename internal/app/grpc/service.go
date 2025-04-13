@@ -11,7 +11,7 @@ type (
 	pvzService interface {
 		ListPVZ(ctx context.Context, startDate, endDate time.Time, page, limit uint32) ([]models.PVZInfo, error)
 		GetPVZList(ctx context.Context) ([]models.PVZ, error)
-		CreatePVZ(ctx context.Context, id, city string, registrationDate time.Time) (models.PVZ, error)
+		CreatePVZ(ctx context.Context, id, city string, registrationDate *time.Time) (models.PVZ, error)
 
 		CreateReception(ctx context.Context, pvzId string) (models.Reception, error)
 		CloseLastReception(ctx context.Context, pvzId string) (models.Reception, error)

@@ -22,6 +22,7 @@ import (
 	pvzpb "pvz/pkg/api/v1"
 	"pvz/pkg/closer"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -84,12 +85,26 @@ func main() {
 	c.Add(httpCloser)
 
 	httpPort := cfg.HTTPServer.Port
-	gwMux.Handle("/metrics", promhttp.Handler())
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%s", httpPort),
 		Handler: gwMux,
 	}
 	go runHttpServer(cfg.HTTPServer, httpServer)
+
+	obsCfg := config.HTTPServer{
+		Port:        "9000",
+		Timeout:     5 * time.Second,
+		IdleTimeout: 10 * time.Second,
+	}
+	obsPort := obsCfg.Port
+	obsMux := http.NewServeMux()
+	obsMux.Handle("/metrics", promhttp.Handler())
+	obsServer := &http.Server{
+		Addr:    fmt.Sprintf(":%s", obsPort),
+		Handler: obsMux,
+	}
+	c.Add(obsServer.Close)
+	go runHttpServer(obsCfg, obsServer)
 
 	<-ctx.Done()
 	logger.Info("grpc and http servers shut down gracefully")
