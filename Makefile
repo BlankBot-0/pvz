@@ -138,7 +138,7 @@ fast-generate: .protoc-generate
 GOOSE = "$(LOCAL_BIN)/goose"
 
 MIGRATIONS_DIR = "migrations/sql"
-DATABASE_NAME = "shop"
+DATABASE_NAME = "pvz"
 
 .PHONY: .install_goose
 .install_goose:
@@ -154,5 +154,9 @@ fast-migrate:
 
 PHONY: reset-migrations
 reset-migrations: .install_goose
+	$(GOOSE) -dir ${MIGRATIONS_DIR} postgres postgresql://postgres:password@localhost:5432/${DATABASE_NAME} reset
+
+PHONY: fast-reset-migrations
+fast-reset-migrations:
 	$(GOOSE) -dir ${MIGRATIONS_DIR} postgres postgresql://postgres:password@localhost:5432/${DATABASE_NAME} reset
 

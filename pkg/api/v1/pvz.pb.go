@@ -28,8 +28,8 @@ const (
 
 type ListPVZRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	StartDate     *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
-	EndDate       *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	StartDate     *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=startDate,proto3" json:"startDate,omitempty"`
+	EndDate       *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=endDate,proto3" json:"endDate,omitempty"`
 	Page          uint32                 `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
 	Limit         uint32                 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -139,10 +139,12 @@ func (x *ListPVZResponse) GetPvzs() []*ListPVZResponsePvzInfo {
 }
 
 type CreatePVZRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	City          string                 `protobuf:"bytes,1,opt,name=city,proto3" json:"city,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               *string                `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	RegistrationDate *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=registrationDate,proto3,oneof" json:"registrationDate,omitempty"`
+	City             string                 `protobuf:"bytes,3,opt,name=city,proto3" json:"city,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *CreatePVZRequest) Reset() {
@@ -173,6 +175,20 @@ func (x *CreatePVZRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use CreatePVZRequest.ProtoReflect.Descriptor instead.
 func (*CreatePVZRequest) Descriptor() ([]byte, []int) {
 	return file_pvz_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CreatePVZRequest) GetId() string {
+	if x != nil && x.Id != nil {
+		return *x.Id
+	}
+	return ""
+}
+
+func (x *CreatePVZRequest) GetRegistrationDate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RegistrationDate
+	}
+	return nil
 }
 
 func (x *CreatePVZRequest) GetCity() string {
@@ -936,8 +952,8 @@ func (x *GetPVZListResponse) GetPvzs() []*PVZ {
 
 type PVZ struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RegistrationDate *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=registration_date,json=registrationDate,proto3" json:"registration_date,omitempty"`
+	Id               *string                `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	RegistrationDate *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=registration_date,json=registrationDate,proto3,oneof" json:"registration_date,omitempty"`
 	City             string                 `protobuf:"bytes,3,opt,name=city,proto3" json:"city,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
@@ -974,8 +990,8 @@ func (*PVZ) Descriptor() ([]byte, []int) {
 }
 
 func (x *PVZ) GetId() string {
-	if x != nil {
-		return x.Id
+	if x != nil && x.Id != nil {
+		return *x.Id
 	}
 	return ""
 }
@@ -1238,11 +1254,10 @@ var File_pvz_proto protoreflect.FileDescriptor
 
 const file_pvz_proto_rawDesc = "" +
 	"\n" +
-	"\tpvz.proto\x12\x06pvz.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a\x17validate/validate.proto\"\xac\x01\n" +
-	"\x0eListPVZRequest\x129\n" +
-	"\n" +
-	"start_date\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartDate\x125\n" +
-	"\bend_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendDate\x12\x12\n" +
+	"\tpvz.proto\x12\x06pvz.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a\x17validate/validate.proto\"\xaa\x01\n" +
+	"\x0eListPVZRequest\x128\n" +
+	"\tstartDate\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartDate\x124\n" +
+	"\aendDate\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendDate\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\rR\x04page\x12\x14\n" +
 	"\x05limit\x18\x04 \x01(\rR\x05limit\"\xa6\x02\n" +
 	"\x0fListPVZResponse\x123\n" +
@@ -1254,9 +1269,13 @@ const file_pvz_proto_rawDesc = "" +
 	"\x03pvz\x18\x01 \x01(\v2\v.pvz.v1.PVZR\x03pvz\x12E\n" +
 	"\n" +
 	"receptions\x18\x02 \x03(\v2%.pvz.v1.ListPVZResponse.receptionInfoR\n" +
-	"receptions\"&\n" +
-	"\x10CreatePVZRequest\x12\x12\n" +
-	"\x04city\x18\x01 \x01(\tR\x04city\"2\n" +
+	"receptions\"\xa4\x01\n" +
+	"\x10CreatePVZRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12K\n" +
+	"\x10registrationDate\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x01R\x10registrationDate\x88\x01\x01\x12\x12\n" +
+	"\x04city\x18\x03 \x01(\tR\x04cityB\x05\n" +
+	"\x03_idB\x13\n" +
+	"\x11_registrationDate\"2\n" +
 	"\x11CreatePVZResponse\x12\x1d\n" +
 	"\x03pvz\x18\x01 \x01(\v2\v.pvz.v1.PVZR\x03pvz\".\n" +
 	"\x16CreateReceptionRequest\x12\x14\n" +
@@ -1279,10 +1298,10 @@ const file_pvz_proto_rawDesc = "" +
 	"\x11DummyLoginRequest\x12\x12\n" +
 	"\x04role\x18\x01 \x01(\tR\x04role\"*\n" +
 	"\x12DummyLoginResponse\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"W\n" +
-	"\x0fRegisterRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"i\n" +
+	"\x0fRegisterRequest\x12\x1d\n" +
+	"\x05email\x18\x01 \x01(\tB\a\xfaB\x04r\x02`\x01R\x05email\x12#\n" +
+	"\bpassword\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\bR\bpassword\x12\x12\n" +
 	"\x04role\x18\x03 \x01(\tR\x04role\"L\n" +
 	"\x10RegisterResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
@@ -1294,11 +1313,13 @@ const file_pvz_proto_rawDesc = "" +
 	"\rLoginResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"5\n" +
 	"\x12GetPVZListResponse\x12\x1f\n" +
-	"\x04pvzs\x18\x01 \x03(\v2\v.pvz.v1.PVZR\x04pvzs\"r\n" +
-	"\x03PVZ\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12G\n" +
-	"\x11registration_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x10registrationDate\x12\x12\n" +
-	"\x04city\x18\x03 \x01(\tR\x04city\"\x83\x01\n" +
+	"\x04pvzs\x18\x01 \x03(\v2\v.pvz.v1.PVZR\x04pvzs\"\x99\x01\n" +
+	"\x03PVZ\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12L\n" +
+	"\x11registration_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x01R\x10registrationDate\x88\x01\x01\x12\x12\n" +
+	"\x04city\x18\x03 \x01(\tR\x04cityB\x05\n" +
+	"\x03_idB\x14\n" +
+	"\x12_registration_date\"\x83\x01\n" +
 	"\tReception\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x127\n" +
 	"\tdate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\bdateTime\x12\x15\n" +
@@ -1366,46 +1387,47 @@ var file_pvz_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),                // 25: google.protobuf.Empty
 }
 var file_pvz_proto_depIdxs = []int32{
-	24, // 0: pvz.v1.ListPVZRequest.start_date:type_name -> google.protobuf.Timestamp
-	24, // 1: pvz.v1.ListPVZRequest.end_date:type_name -> google.protobuf.Timestamp
+	24, // 0: pvz.v1.ListPVZRequest.startDate:type_name -> google.protobuf.Timestamp
+	24, // 1: pvz.v1.ListPVZRequest.endDate:type_name -> google.protobuf.Timestamp
 	23, // 2: pvz.v1.ListPVZResponse.pvzs:type_name -> pvz.v1.ListPVZResponse.pvzInfo
-	19, // 3: pvz.v1.CreatePVZResponse.pvz:type_name -> pvz.v1.PVZ
-	20, // 4: pvz.v1.CreateReceptionResponse.reception:type_name -> pvz.v1.Reception
-	20, // 5: pvz.v1.CloseLastReceptionResponse.reception:type_name -> pvz.v1.Reception
-	21, // 6: pvz.v1.CreateProductResponse.product:type_name -> pvz.v1.Product
-	19, // 7: pvz.v1.GetPVZListResponse.pvzs:type_name -> pvz.v1.PVZ
-	24, // 8: pvz.v1.PVZ.registration_date:type_name -> google.protobuf.Timestamp
-	24, // 9: pvz.v1.Reception.date_time:type_name -> google.protobuf.Timestamp
-	24, // 10: pvz.v1.Product.date_time:type_name -> google.protobuf.Timestamp
-	20, // 11: pvz.v1.ListPVZResponse.receptionInfo.reception:type_name -> pvz.v1.Reception
-	21, // 12: pvz.v1.ListPVZResponse.receptionInfo.products:type_name -> pvz.v1.Product
-	19, // 13: pvz.v1.ListPVZResponse.pvzInfo.pvz:type_name -> pvz.v1.PVZ
-	22, // 14: pvz.v1.ListPVZResponse.pvzInfo.receptions:type_name -> pvz.v1.ListPVZResponse.receptionInfo
-	0,  // 15: pvz.v1.PVZService.ListPVZ:input_type -> pvz.v1.ListPVZRequest
-	2,  // 16: pvz.v1.PVZService.CreatePVZ:input_type -> pvz.v1.CreatePVZRequest
-	4,  // 17: pvz.v1.PVZService.CreateReception:input_type -> pvz.v1.CreateReceptionRequest
-	6,  // 18: pvz.v1.PVZService.CloseLastReception:input_type -> pvz.v1.CloseLastReceptionRequest
-	8,  // 19: pvz.v1.PVZService.CreateProduct:input_type -> pvz.v1.CreateProductRequest
-	10, // 20: pvz.v1.PVZService.DeleteLastProduct:input_type -> pvz.v1.DeleteLastProductRequest
-	12, // 21: pvz.v1.PVZService.DummyLogin:input_type -> pvz.v1.DummyLoginRequest
-	14, // 22: pvz.v1.PVZService.Register:input_type -> pvz.v1.RegisterRequest
-	16, // 23: pvz.v1.PVZService.Login:input_type -> pvz.v1.LoginRequest
-	25, // 24: pvz.v1.PVZService.ListPVZ:input_type -> google.protobuf.Empty
-	1,  // 25: pvz.v1.PVZService.ListPVZ:output_type -> pvz.v1.ListPVZResponse
-	3,  // 26: pvz.v1.PVZService.CreatePVZ:output_type -> pvz.v1.CreatePVZResponse
-	5,  // 27: pvz.v1.PVZService.CreateReception:output_type -> pvz.v1.CreateReceptionResponse
-	7,  // 28: pvz.v1.PVZService.CloseLastReception:output_type -> pvz.v1.CloseLastReceptionResponse
-	9,  // 29: pvz.v1.PVZService.CreateProduct:output_type -> pvz.v1.CreateProductResponse
-	11, // 30: pvz.v1.PVZService.DeleteLastProduct:output_type -> pvz.v1.DeleteLastProductResponse
-	13, // 31: pvz.v1.PVZService.DummyLogin:output_type -> pvz.v1.DummyLoginResponse
-	15, // 32: pvz.v1.PVZService.Register:output_type -> pvz.v1.RegisterResponse
-	17, // 33: pvz.v1.PVZService.Login:output_type -> pvz.v1.LoginResponse
-	18, // 34: pvz.v1.PVZService.ListPVZ:output_type -> pvz.v1.GetPVZListResponse
-	25, // [25:35] is the sub-list for method output_type
-	15, // [15:25] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	24, // 3: pvz.v1.CreatePVZRequest.registrationDate:type_name -> google.protobuf.Timestamp
+	19, // 4: pvz.v1.CreatePVZResponse.pvz:type_name -> pvz.v1.PVZ
+	20, // 5: pvz.v1.CreateReceptionResponse.reception:type_name -> pvz.v1.Reception
+	20, // 6: pvz.v1.CloseLastReceptionResponse.reception:type_name -> pvz.v1.Reception
+	21, // 7: pvz.v1.CreateProductResponse.product:type_name -> pvz.v1.Product
+	19, // 8: pvz.v1.GetPVZListResponse.pvzs:type_name -> pvz.v1.PVZ
+	24, // 9: pvz.v1.PVZ.registration_date:type_name -> google.protobuf.Timestamp
+	24, // 10: pvz.v1.Reception.date_time:type_name -> google.protobuf.Timestamp
+	24, // 11: pvz.v1.Product.date_time:type_name -> google.protobuf.Timestamp
+	20, // 12: pvz.v1.ListPVZResponse.receptionInfo.reception:type_name -> pvz.v1.Reception
+	21, // 13: pvz.v1.ListPVZResponse.receptionInfo.products:type_name -> pvz.v1.Product
+	19, // 14: pvz.v1.ListPVZResponse.pvzInfo.pvz:type_name -> pvz.v1.PVZ
+	22, // 15: pvz.v1.ListPVZResponse.pvzInfo.receptions:type_name -> pvz.v1.ListPVZResponse.receptionInfo
+	0,  // 16: pvz.v1.PVZService.ListPVZPaginated:input_type -> pvz.v1.ListPVZRequest
+	2,  // 17: pvz.v1.PVZService.CreatePVZ:input_type -> pvz.v1.CreatePVZRequest
+	4,  // 18: pvz.v1.PVZService.CreateReception:input_type -> pvz.v1.CreateReceptionRequest
+	6,  // 19: pvz.v1.PVZService.CloseLastReception:input_type -> pvz.v1.CloseLastReceptionRequest
+	8,  // 20: pvz.v1.PVZService.CreateProduct:input_type -> pvz.v1.CreateProductRequest
+	10, // 21: pvz.v1.PVZService.DeleteLastProduct:input_type -> pvz.v1.DeleteLastProductRequest
+	12, // 22: pvz.v1.PVZService.DummyLogin:input_type -> pvz.v1.DummyLoginRequest
+	14, // 23: pvz.v1.PVZService.Register:input_type -> pvz.v1.RegisterRequest
+	16, // 24: pvz.v1.PVZService.Login:input_type -> pvz.v1.LoginRequest
+	25, // 25: pvz.v1.PVZService.ListPVZ:input_type -> google.protobuf.Empty
+	1,  // 26: pvz.v1.PVZService.ListPVZPaginated:output_type -> pvz.v1.ListPVZResponse
+	3,  // 27: pvz.v1.PVZService.CreatePVZ:output_type -> pvz.v1.CreatePVZResponse
+	5,  // 28: pvz.v1.PVZService.CreateReception:output_type -> pvz.v1.CreateReceptionResponse
+	7,  // 29: pvz.v1.PVZService.CloseLastReception:output_type -> pvz.v1.CloseLastReceptionResponse
+	9,  // 30: pvz.v1.PVZService.CreateProduct:output_type -> pvz.v1.CreateProductResponse
+	11, // 31: pvz.v1.PVZService.DeleteLastProduct:output_type -> pvz.v1.DeleteLastProductResponse
+	13, // 32: pvz.v1.PVZService.DummyLogin:output_type -> pvz.v1.DummyLoginResponse
+	15, // 33: pvz.v1.PVZService.Register:output_type -> pvz.v1.RegisterResponse
+	17, // 34: pvz.v1.PVZService.Login:output_type -> pvz.v1.LoginResponse
+	18, // 35: pvz.v1.PVZService.ListPVZ:output_type -> pvz.v1.GetPVZListResponse
+	26, // [26:36] is the sub-list for method output_type
+	16, // [16:26] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_pvz_proto_init() }
@@ -1413,6 +1435,8 @@ func file_pvz_proto_init() {
 	if File_pvz_proto != nil {
 		return
 	}
+	file_pvz_proto_msgTypes[2].OneofWrappers = []any{}
+	file_pvz_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -20,7 +20,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PVZService_ListPVZ_FullMethodName            = "/pvz.v1.PVZService/ListPVZ"
+	PVZService_ListPVZ_FullMethodName            = "/pvz.v1.PVZService/ListPVZPaginated"
 	PVZService_CreatePVZ_FullMethodName          = "/pvz.v1.PVZService/CreatePVZ"
 	PVZService_CreateReception_FullMethodName    = "/pvz.v1.PVZService/CreateReception"
 	PVZService_CloseLastReception_FullMethodName = "/pvz.v1.PVZService/CloseLastReception"
@@ -181,7 +181,7 @@ type PVZServiceServer interface {
 type UnimplementedPVZServiceServer struct{}
 
 func (UnimplementedPVZServiceServer) ListPVZ(context.Context, *ListPVZRequest) (*ListPVZResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListPVZ not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method ListPVZPaginated not implemented")
 }
 func (UnimplementedPVZServiceServer) CreatePVZ(context.Context, *CreatePVZRequest) (*CreatePVZResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePVZ not implemented")
@@ -419,7 +419,7 @@ var PVZService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PVZServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ListPVZ",
+			MethodName: "ListPVZPaginated",
 			Handler:    _PVZService_ListPVZ_Handler,
 		},
 		{

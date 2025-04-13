@@ -5,14 +5,14 @@ create table users
     id            uuid primary key,
     email         text unique,
     password_hash text,
-    role          text
+    role_id       int references roles(id)
 );
 
 create table pvzs
 (
     id                uuid primary key,
     registration_date timestamp default now(),
-    city              text
+    city_id           int references cities(id)
 );
 
 create table receptions
@@ -27,7 +27,7 @@ create table products
 (
     id           uuid primary key,
     date         timestamp default now(),
-    type         text,
+    type_id      bigint references product_types(id),
 
     reception_id uuid
 );

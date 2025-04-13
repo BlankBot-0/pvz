@@ -377,7 +377,7 @@ func RegisterPVZServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZ", runtime.WithHTTPPathPattern("/pvz"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZPaginated", runtime.WithHTTPPathPattern("/pvz"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -615,7 +615,7 @@ func RegisterPVZServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZ", runtime.WithHTTPPathPattern("/pvz"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZPaginated", runtime.WithHTTPPathPattern("/pvz"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

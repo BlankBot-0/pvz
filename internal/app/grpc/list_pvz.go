@@ -24,7 +24,7 @@ func (s *Service) ListPVZ(ctx context.Context, request *pvzpb.ListPVZRequest) (*
 		Pvzs: lo.Map(res, func(pvzInfo models.PVZInfo, _ int) *pvzpb.ListPVZResponsePvzInfo {
 			return &pvzpb.ListPVZResponsePvzInfo{
 				Pvz: &pvzpb.PVZ{
-					Id:               pvzInfo.PVZ.Id,
+					Id:               &pvzInfo.PVZ.Id,
 					RegistrationDate: timestamppb.New(pvzInfo.PVZ.RegistrationDate),
 					City:             pvzInfo.PVZ.City,
 				},

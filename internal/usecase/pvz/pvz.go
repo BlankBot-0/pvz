@@ -11,8 +11,13 @@ import (
 	"time"
 )
 
+type uuidGenerator interface {
+	GenerateUuid(ctx context.Context) string
+}
+
 type Deps struct {
-	Repo postgres.DB
+	Repo       postgres.DB
+	UuidIssuer uuidGenerator
 }
 
 type PVZ struct {
@@ -26,11 +31,11 @@ func New(deps Deps) *PVZ {
 }
 
 func (p *PVZ) ListPVZ(ctx context.Context, startDate, endDate time.Time, page, limit uint32) ([]models.PVZInfo, error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/ListPVZ")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/ListPVZPaginated")
 	defer span.Finish()
 
 	offset := (page - 1) * limit
-	pvzs, err := p.Deps.Repo.ROPvz().ListPVZ(ctx, startDate, endDate, offset, limit)
+	pvzs, err := p.Deps.Repo.ROPvz().ListPVZPaginated(ctx, startDate, endDate, offset, limit)
 	if errors.Is(err, postgres.ErrNotFound) {
 		return nil, fmt.Errorf("list pvz: no items with such parameters: %w", err)
 	} else if err != nil {
@@ -89,18 +94,17 @@ func (p *PVZ) ListPVZ(ctx context.Context, startDate, endDate time.Time, page, l
 	return pvzInfos, nil
 }
 func (p *PVZ) GetPVZList(ctx context.Context) ([]models.PVZ, error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/GetPVZList")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/ListPVZ")
 	defer span.Finish()
 
-	// TODO: choose big limit or make a separate function
-	pvzs, err := p.Deps.Repo.ROPvz().ListPVZ(ctx, minimumDate, maximumDate, 0, 10)
+	pvzs, err := p.Deps.Repo.ROPvz().ListPVZ(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get pvz list: %w", err)
 	}
 
 	return pvzs, nil
 }
-func (p *PVZ) CreatePVZ(ctx context.Context, id, city string) (models.PVZ, error) {
+func (p *PVZ) CreatePVZ(ctx context.Context, id, city string, registrationDate *time.Time) (models.PVZ, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/CreatePVZ")
 	defer span.Finish()
 
@@ -111,8 +115,14 @@ func (p *PVZ) CreatePVZ(ctx context.Context, id, city string) (models.PVZ, error
 		return models.PVZ{}, ErrCityNotFound
 	}
 
-	// TODO: check id for emptiness
-	pvz, err := p.Deps.Repo.RWPvz().AddPVZ(ctx, id, city)
+	if len(id) == 0 {
+		id = p.Deps.UuidIssuer.Uuid(ctx)
+	}
+	if registrationDate == nil {
+		t := time.Now()
+		registrationDate = &t
+	}
+	pvz, err := p.Deps.Repo.RWPvz().AddPVZ(ctx, id, city, *registrationDate)
 	if err != nil {
 		return pvz, fmt.Errorf("create pvz: %w", err)
 	}

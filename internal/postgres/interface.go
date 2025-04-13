@@ -12,24 +12,22 @@ var _ DB = (*Database)(nil)
 type (
 	// ROPVZ is a read-only repository
 	ROPVZ interface {
-		ListPVZ(ctx context.Context, startDate time.Time, endDate time.Time, offset uint32, limit uint32) ([]models.PVZ, error)
-		GetPVZ(ctx context.Context, pvzId string) (models.PVZ, error)
+		ListPVZPaginated(ctx context.Context, startDate time.Time, endDate time.Time, offset uint32, limit uint32) ([]models.PVZ, error)
+		ListPVZ(ctx context.Context) ([]models.PVZ, error)
 		ListReceptionsByPVZId(ctx context.Context, pvzIds []string) ([]models.Reception, error)
 		GetLastReceptionByPVZ(ctx context.Context, pvzId string) (models.Reception, error)
 		ListProductsByReceptionId(ctx context.Context, receptionIds []string) ([]models.Product, error)
-		GetLastProductByReception(ctx context.Context, receptionId string) (models.Product, error)
-
-		CheckExistsCity(ctx context.Context, city string) (bool, error)
-		CheckExistsProductType(ctx context.Context, productType string) (bool, error)
+		GetPVZ(ctx context.Context, pvzId string) (models.PVZ, error)
 	}
 
 	// RWPVZ is a read-write repository
 	RWPVZ interface {
-		AddPVZ(ctx context.Context, id, city string) (models.PVZ, error)
+		AddPVZ(ctx context.Context, id string, city string) error
+		AddPVZWIthDate(ctx context.Context, id string, city string, registrationDate time.Time) error
 		AddReception(ctx context.Context, pvzId string, status string) (models.Reception, error)
-		UpdateReception(ctx context.Context, receptionId string, status string) (models.Reception, error)
+		CloseLastReceptionByPVZId(ctx context.Context, pvzId string) error
 		AddProductToReception(ctx context.Context, productType string, receptionId string) (models.Product, error)
-		DeleteProduct(ctx context.Context, productId string) error
+		DeleteLastProduct(ctx context.Context, pvzId string) error
 		ROPVZ
 	}
 

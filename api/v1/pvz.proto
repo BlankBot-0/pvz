@@ -71,8 +71,8 @@ service PVZService {
 }
 
 message ListPVZRequest {
-  google.protobuf.Timestamp start_date = 1;
-  google.protobuf.Timestamp end_date = 2;
+  google.protobuf.Timestamp startDate = 1;
+  google.protobuf.Timestamp endDate = 2;
   uint32 page = 3;
   uint32 limit = 4;
 }
@@ -91,7 +91,9 @@ message ListPVZResponse {
 }
 
 message CreatePVZRequest {
-  string city = 1;
+  optional string id = 1;
+  optional google.protobuf.Timestamp registrationDate = 2;
+  string city = 3;
 }
 
 message CreatePVZResponse {
@@ -140,8 +142,8 @@ message DummyLoginResponse {
 }
 
 message RegisterRequest {
-  string email = 1;
-  string password = 2;
+  string email = 1 [(validate.rules).string = {email: true}];
+  string password = 2 [(validate.rules).string.min_len = 8];
   string role = 3;
 }
 
@@ -165,8 +167,8 @@ message GetPVZListResponse {
 }
 
 message PVZ {
-  string id = 1;
-  google.protobuf.Timestamp registration_date = 2;
+  optional string id = 1;
+  optional google.protobuf.Timestamp registration_date = 2;
   string city = 3;
 }
 

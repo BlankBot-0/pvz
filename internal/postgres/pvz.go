@@ -12,14 +12,15 @@ type roPVZ struct {
 	query querier
 }
 
-func (ro *roPVZ) ListPVZ(ctx context.Context, startDate, endDate time.Time, offset, limit uint32) ([]models.PVZ, error) {
-	const queryName = "PVZRepository/ListPVZ"
+func (ro *roPVZ) ListPVZPaginated(ctx context.Context, startDate, endDate time.Time, offset, limit uint32) ([]models.PVZ, error) {
+	const queryName = "PVZRepository/ListPVZPaginated"
 	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
 	defer span.Finish()
 
 	const q = `
-		select id, registration_date, city
+		select pvzs.id, pvzs.registration_date, cities.name
 		from pvzs
+		join cities on pvzs.city_id = cities.id
 		where registration_date >= $1 and registration_date <= $2
 		limit $3 offset $4`
 
@@ -27,7 +28,24 @@ func (ro *roPVZ) ListPVZ(ctx context.Context, startDate, endDate time.Time, offs
 	if err := pgxscan.Select(ctx, ro.query, pvzs, q, startDate, endDate, limit, offset); err != nil {
 		return pvzs, handleError(queryName, err)
 	}
+	return pvzs, nil
+}
 
+func (ro *roPVZ) ListPVZ(ctx context.Context) ([]models.PVZ, error) {
+	const queryName = "PVZRepository/ListPVZ"
+	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
+	defer span.Finish()
+
+	const q = `
+		select pvzs.id, pvzs.registration_date, cities.name
+		from pvzs
+		join cities on pvzs.city_id = cities.id
+		`
+
+	var pvzs []models.PVZ
+	if err := pgxscan.Select(ctx, ro.query, pvzs, q); err != nil {
+		return pvzs, handleError(queryName, err)
+	}
 	return pvzs, nil
 }
 
@@ -45,7 +63,6 @@ func (ro *roPVZ) ListReceptionsByPVZId(ctx context.Context, pvzIds []string) ([]
 	if err := pgxscan.Select(ctx, ro.query, receptions, q, pvzIds); err != nil {
 		return nil, handleError(queryName, err)
 	}
-
 	return receptions, nil
 }
 
@@ -65,7 +82,6 @@ func (ro *roPVZ) GetLastReceptionByPVZ(ctx context.Context, pvzId string) (model
 	if err := pgxscan.Get(ctx, ro.query, &reception, q, pvzId); err != nil {
 		return reception, handleError(queryName, err)
 	}
-
 	return reception, nil
 }
 
@@ -75,36 +91,16 @@ func (ro *roPVZ) ListProductsByReceptionId(ctx context.Context, receptionIds []s
 	defer span.Finish()
 
 	const q = `
-		select id, date, type, reception_id
+		select products.id, products.date, product_types.name, products.reception_id
 		from products
+		join product_types on products.type_id = product_types.id
 		where reception_id in ($1)`
 
 	var products []models.Product
 	if err := pgxscan.Select(ctx, ro.query, products, q, receptionIds); err != nil {
 		return nil, handleError(queryName, err)
 	}
-
 	return products, nil
-}
-
-func (ro *roPVZ) GetLastProductByReception(ctx context.Context, receptionId string) (models.Product, error) {
-	const queryName = "PVZRepository/GetLastProductByReception"
-	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
-	defer span.Finish()
-
-	const q = `
-		select id, date, type, reception_id
-		from products
-		where reception_id = $1
-		order by date desc
-		limit 1`
-
-	var product models.Product
-	if err := pgxscan.Get(ctx, ro.query, &product, q, receptionId); err != nil {
-		return product, handleError(queryName, err)
-	}
-
-	return product, nil
 }
 
 func (ro *roPVZ) GetPVZ(ctx context.Context, pvzId string) (models.PVZ, error) {
@@ -113,47 +109,17 @@ func (ro *roPVZ) GetPVZ(ctx context.Context, pvzId string) (models.PVZ, error) {
 	defer span.Finish()
 
 	const q = `
-		select id, registration_date, city
+		select pvzs.id, pvzs.registration_date, cities.name
 		from pvzs
-		where id = $1`
+		join cities on pvzs.city_id = cities.id
+		where pvzs.id = $1
+		`
 
 	var pvz models.PVZ
 	if err := pgxscan.Get(ctx, ro.query, q, pvzId); err != nil {
 		return pvz, handleError(queryName, err)
 	}
-
 	return pvz, nil
-}
-
-func (ro *roPVZ) CheckExistsCity(ctx context.Context, city string) (bool, error) {
-	const queryName = "PVZRepository/CheckExistsCity"
-	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
-	defer span.Finish()
-
-	const q = `
-		select exists(select 1 from cities where name = $1)
-		`
-
-	var exists bool
-	if err := pgxscan.Get(ctx, ro.query, q, city); err != nil {
-		return false, handleError(queryName, err)
-	}
-	return exists, nil
-}
-
-func (ro *roPVZ) CheckExistsProductType(ctx context.Context, productType string) (bool, error) {
-	const queryName = "PVZRepository/CheckExistsProductType"
-	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
-	defer span.Finish()
-	const q = `
-		select exists(select 1 from product_types where name = $1)
-		`
-
-	var exists bool
-	if err := pgxscan.Get(ctx, ro.query, q, productType); err != nil {
-		return false, handleError(queryName, err)
-	}
-	return exists, nil
 }
 
 type rwPVZ struct {
@@ -161,22 +127,36 @@ type rwPVZ struct {
 	exec executor
 }
 
-func (rw *rwPVZ) AddPVZ(ctx context.Context, id, city string) (models.PVZ, error) {
+func (rw *rwPVZ) AddPVZ(ctx context.Context, id string, city string) error {
 	const queryName = "PVZRepository/AddPVZ"
 	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
 	defer span.Finish()
 
 	const q = `
-		insert into pvzs (id, city)
-		values ($1, $2)
-		returning id, registration_date, city`
+		insert into pvzs (id, city_id)
+		values ($1, coalesce((select id from cities where name = $2), -1))`
 
-	var pvz models.PVZ
-	if err := pgxscan.Get(ctx, rw.exec, pvz, q, id, city); err != nil {
-		return pvz, handleError(queryName, err)
+	if _, err := rw.exec.Exec(ctx, q, id, city); err != nil {
+		return handleError(queryName, err)
 	}
 
-	return pvz, nil
+	return nil
+}
+
+func (rw *rwPVZ) AddPVZWIthDate(ctx context.Context, id string, city string, registrationDate time.Time) error {
+	const queryName = "PVZRepository/AddPVZWIthDate"
+	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
+	defer span.Finish()
+
+	const q = `
+		insert into pvzs (id, city_id, registration_date)
+		values ($1, coalesce((select id from cities where name = $2), -1), $3)`
+
+	if _, err := rw.exec.Exec(ctx, q, id, city, registrationDate); err != nil {
+		return handleError(queryName, err)
+	}
+
+	return nil
 }
 
 func (rw *rwPVZ) AddReception(ctx context.Context, pvzId, status string) (models.Reception, error) {
@@ -187,32 +167,30 @@ func (rw *rwPVZ) AddReception(ctx context.Context, pvzId, status string) (models
 	const q = `
 		insert into receptions (id, pvz_id, status)
 		values (gen_random_uuid(), $1, $2)
-		returning id, date, status, pvz_id`
+		returning id, date`
 
-	var reception models.Reception
+	reception := models.Reception{PvzId: pvzId, ReceptionStatus: status}
 	if err := pgxscan.Get(ctx, rw.exec, &reception, q, pvzId, status); err != nil {
 		return reception, handleError(queryName, err)
 	}
-
 	return reception, nil
 }
 
-func (rw *rwPVZ) UpdateReception(ctx context.Context, receptionId, status string) (models.Reception, error) {
-	const queryName = "PVZRepository/UpdateReception"
+func (rw *rwPVZ) CloseLastReceptionByPVZId(ctx context.Context, pvzId string) error {
+	const queryName = "PVZRepository/CloseLastReceptionByPVZId"
 	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
 	defer span.Finish()
 
 	const q = `
-		update receptions set status = $2
-		where id = $1
-		returning id, date, status, pvz_id`
+        update receptions set status = 'closed'
+        where pvz_id = $1 and status == 'in_progress'`
 
-	var reception models.Reception
-	if err := pgxscan.Get(ctx, rw.exec, &reception, q, receptionId, status); err != nil {
-		return reception, handleError(queryName, err)
+	if tag, err := rw.exec.Exec(ctx, q, pvzId); err != nil {
+		return handleError(queryName, err)
+	} else if err = ensureRowIsAffected(tag); err != nil {
+		return handleError(queryName, err)
 	}
-
-	return reception, nil
+	return nil
 }
 
 func (rw *rwPVZ) AddProductToReception(ctx context.Context, productType, receptionId string) (models.Product, error) {
@@ -221,28 +199,38 @@ func (rw *rwPVZ) AddProductToReception(ctx context.Context, productType, recepti
 	defer span.Finish()
 
 	const q = `
-		insert into products (id, type, reception_id)
-		values (gen_random_uuid(), $1, $2)
-		returning id, date, type, reception_id`
+		insert into products (id, type_id, reception_id)
+		values (gen_random_uuid(), coalesce((select id from cities where name = $1), -1), $2)
+		returning id, date`
 
-	var product models.Product
+	product := models.Product{
+		Type:        productType,
+		ReceptionId: receptionId,
+	}
 	if err := pgxscan.Get(ctx, rw.exec, &product, q, productType, receptionId); err != nil {
 		return product, handleError(queryName, err)
 	}
-
 	return product, nil
 }
 
-func (rw *rwPVZ) DeleteProduct(ctx context.Context, productId string) error {
-	const queryName = "PVZRepository/DeleteProduct"
+func (rw *rwPVZ) DeleteLastProduct(ctx context.Context, pvzId string) error {
+	const queryName = "PVZRepository/DeleteLastProduct"
 	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
 	defer span.Finish()
 
 	const q = `
-		delete from products where id = $1`
+		delete from products
+		where id = (
+			select p.id from products p
+			join receptions on receptions.id = products.reception_id
+		    where pvz_id = $1 and status = 'in_progress'
+		    order by p.date desc
+		    limit 1)`
 
-	if _, err := rw.exec.Exec(ctx, q, productId); err != nil {
+	if tag, err := rw.exec.Exec(ctx, q, pvzId); err != nil {
 		return handleError(queryName, err)
+	} else if err = ensureRowIsAffected(tag); err != nil {
+		return err
 	}
 	return nil
 }

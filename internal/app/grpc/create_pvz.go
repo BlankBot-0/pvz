@@ -9,14 +9,19 @@ import (
 )
 
 func (s *Service) CreatePvz(ctx context.Context, req *pvzpb.CreatePVZRequest) (*pvzpb.CreatePVZResponse, error) {
-	res, err := s.PVZ.CreatePVZ(ctx, req.City)
+	var id string
+	if req.Id != nil {
+		id = *req.Id
+	}
+
+	res, err := s.PVZ.CreatePVZ(ctx, id, req.City)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unexpected error while creating pvz")
 	}
 
 	return &pvzpb.CreatePVZResponse{
 		Pvz: &pvzpb.PVZ{
-			Id:               res.Id,
+			Id:               &res.Id,
 			RegistrationDate: timestamppb.New(res.RegistrationDate),
 			City:             res.City,
 		},
