@@ -1,0 +1,20 @@
+env: "local" # local, dev, prod
+dsn: "postgresql://postgres:password@db:5432/pvz"
+datetime_format: "2006-01-02T15:04:05Z"
+auth:
+  private_key: "secret_key"
+  expiration_time: "200m"
+grpc_server:
+  port: 3000
+http_server:
+  port: 8080
+  timeout: "4s"
+  idle_timeout: "60s"
+obs_server:
+  port: 9000
+  timeout: "4s"
+  idle_timeout: "60s"
+jaeger:
+  host: "localhost:6831"
+  service_name: "pvz-service"
+  log_spans: false
