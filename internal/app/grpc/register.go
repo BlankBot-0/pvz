@@ -21,7 +21,7 @@ func (s *Service) Register(ctx context.Context, request *pvzpb.RegisterRequest) 
 	}
 
 	return &pvzpb.RegisterResponse{
-		Id:    res.Id,
+		Id:    res.ID,
 		Email: res.Email,
 		Role:  res.Role,
 	}, nil

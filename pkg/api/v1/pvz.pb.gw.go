@@ -377,7 +377,7 @@ func RegisterPVZServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZPaginated", runtime.WithHTTPPathPattern("/pvz"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZ", runtime.WithHTTPPathPattern("/pvz"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -557,7 +557,7 @@ func RegisterPVZServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZ", runtime.WithHTTPPathPattern("/pvz.v1.PVZService/ListPVZ"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/pvz.v1.PVZService/GetPVZList", runtime.WithHTTPPathPattern("/pvz.v1.PVZService/GetPVZList"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -615,7 +615,7 @@ func RegisterPVZServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZPaginated", runtime.WithHTTPPathPattern("/pvz"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZ", runtime.WithHTTPPathPattern("/pvz"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -768,7 +768,7 @@ func RegisterPVZServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/pvz.v1.PVZService/ListPVZ", runtime.WithHTTPPathPattern("/pvz.v1.PVZService/ListPVZ"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/pvz.v1.PVZService/GetPVZList", runtime.WithHTTPPathPattern("/pvz.v1.PVZService/GetPVZList"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -850,7 +850,7 @@ var (
 	pattern_PVZService_DummyLogin_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"dummyLogin"}, ""))
 	pattern_PVZService_Register_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"register"}, ""))
 	pattern_PVZService_Login_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"login"}, ""))
-	pattern_PVZService_GetPVZList_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"pvz.v1.PVZService", "ListPVZ"}, ""))
+	pattern_PVZService_GetPVZList_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"pvz.v1.PVZService", "GetPVZList"}, ""))
 )
 
 var (

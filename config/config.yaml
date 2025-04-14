@@ -9,6 +9,10 @@ http_server:
   port: 8080
   timeout: "4s"
   idle_timeout: "60s"
+obs_server:
+  port: 9000
+  timeout: "4s"
+  idle_timeout: "60s"
 jaeger:
   host: "localhost:6831"
   service_name: "pvz-service"

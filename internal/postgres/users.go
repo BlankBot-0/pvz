@@ -11,7 +11,7 @@ type roUsers struct {
 	query querier
 }
 
-func (ro *roUsers) UserById(ctx context.Context, userId string) (models.User, error) {
+func (ro *roUsers) UserByID(ctx context.Context, userId string) (models.User, error) {
 	const queryName = "UsersRepository/UserCoins"
 	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
 	defer span.Finish()

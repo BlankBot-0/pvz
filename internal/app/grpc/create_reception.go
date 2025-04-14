@@ -22,9 +22,9 @@ func (s *Service) CreateReception(ctx context.Context, request *pvzpb.CreateRece
 
 	return &pvzpb.CreateReceptionResponse{
 		Reception: &pvzpb.Reception{
-			Id:       res.Id,
+			Id:       res.ID,
 			DateTime: timestamppb.New(res.DateTime),
-			PvzId:    res.PvzId,
+			PvzId:    res.PvzID,
 			Status:   res.ReceptionStatus,
 		},
 	}, nil

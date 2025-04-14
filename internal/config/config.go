@@ -14,6 +14,7 @@ type Config struct {
 	PrivateKey string     `yaml:"private_key"`
 	PublicKey  string     `yaml:"public_key"`
 	HTTPServer HTTPServer `yaml:"http_server"`
+	OBSServer  HTTPServer `yaml:"obs_server"`
 	GRPCServer GRPCServer `yaml:"grpc_server"`
 	Auth       Auth       `yaml:"auth"`
 	Cache      Cache      `yaml:"cache"`

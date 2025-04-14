@@ -12,7 +12,7 @@ import (
 )
 
 func (s *Service) GetPVZList(ctx context.Context, _ *emptypb.Empty) (*pvzpb.GetPVZListResponse, error) {
-	res, err := s.PVZ.GetPVZList(ctx)
+	res, err := s.PVZ.ListPVZ(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unexpected error while getting pvz list")
 	}
@@ -20,7 +20,7 @@ func (s *Service) GetPVZList(ctx context.Context, _ *emptypb.Empty) (*pvzpb.GetP
 	return &pvzpb.GetPVZListResponse{
 		Pvzs: lo.Map(res, func(pvz models.PVZ, _ int) *pvzpb.PVZ {
 			return &pvzpb.PVZ{
-				Id:               &pvz.Id,
+				Id:               &pvz.ID,
 				RegistrationDate: timestamppb.New(pvz.RegistrationDate),
 				City:             pvz.City,
 			}

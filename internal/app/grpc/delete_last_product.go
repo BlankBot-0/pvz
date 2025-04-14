@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Service) DeleteLastProduct(ctx context.Context, request *pvzpb.DeleteLastProductRequest) (*pvzpb.DeleteLastProductResponse, error) {
-	res, err := s.PVZ.DeleteLastProduct(ctx, request.PvzId)
+	err := s.PVZ.DeleteLastProduct(ctx, request.PvzId)
 	if errors.Is(err, pvz.ErrPVZNotFound) {
 		return nil, status.Error(codes.InvalidArgument, "no pvz with id "+request.PvzId)
 	} else if errors.Is(err, pvz.ErrNoReceptionsInProgress) {
@@ -21,5 +21,5 @@ func (s *Service) DeleteLastProduct(ctx context.Context, request *pvzpb.DeleteLa
 		return nil, status.Error(codes.Internal, "unexpected error while deleting last product")
 	}
 
-	return &pvzpb.DeleteLastProductResponse{Message: res}, nil
+	return &pvzpb.DeleteLastProductResponse{Message: "product is deleted from last opened reception"}, nil
 }

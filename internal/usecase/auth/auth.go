@@ -74,7 +74,7 @@ func (a *AuthService) Register(ctx context.Context, email, password, role string
 	}
 
 	return models.User{
-		Id:    id,
+		ID:    id,
 		Email: email,
 		Role:  role,
 	}, nil

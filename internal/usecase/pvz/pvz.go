@@ -6,18 +6,19 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/opentracing/opentracing-go"
+	"github.com/samber/lo"
 	"pvz/internal/models"
 	"pvz/internal/postgres"
 	"time"
 )
 
 type uuidGenerator interface {
-	GenerateUuid(ctx context.Context) string
+	GenerateUUID(ctx context.Context) string
 }
 
 type Deps struct {
-	Repo       postgres.DB
-	UuidIssuer uuidGenerator
+	Repo          postgres.DB
+	UUIDGenerator uuidGenerator
 }
 
 type PVZ struct {
@@ -30,248 +31,208 @@ func New(deps Deps) *PVZ {
 	}
 }
 
-func (p *PVZ) ListPVZ(ctx context.Context, startDate, endDate time.Time, page, limit uint32) ([]models.PVZInfo, error) {
+func (p *PVZ) ListPVZPaginated(ctx context.Context, startDate, endDate time.Time, page, limit uint32) ([]models.PVZInfo, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/ListPVZPaginated")
 	defer span.Finish()
 
 	offset := (page - 1) * limit
 	pvzs, err := p.Deps.Repo.ROPvz().ListPVZPaginated(ctx, startDate, endDate, offset, limit)
-	if errors.Is(err, postgres.ErrNotFound) {
-		return nil, fmt.Errorf("list pvz: no items with such parameters: %w", err)
-	} else if err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("list pvz: %w", err)
 	}
 
 	pvzInfos := make([]models.PVZInfo, len(pvzs))
-	var pvzInfosMap map[string]*models.PVZInfo
-	pvzIds := make([]string, len(pvzs))
+	pvzIDs := make([]string, len(pvzs))
 	for i, pvz := range pvzs {
-		pvzInfos[i] = models.PVZInfo{
-			PVZ:        pvz,
-			Receptions: nil,
-		}
-		pvzInfosMap[pvz.Id] = &pvzInfos[i]
-		pvzIds[i] = pvz.Id
+		pvzInfos[i] = models.PVZInfo{PVZ: pvz}
+		pvzIDs[i] = pvz.ID
 	}
 
-	receptions, err := p.Deps.Repo.ROPvz().ListReceptionsByPVZId(ctx, pvzIds)
+	receptions, err := p.Deps.Repo.ROPvz().ListReceptionsByPVZ(ctx, pvzIDs)
 	if err != nil {
 		return nil, fmt.Errorf("list pvz receptions: %w", err)
 	}
 
-	receptionIds := make([]string, len(receptions))
-	receptionInfos := make([]models.ReceptionInfo, len(receptions))
-	var receptionInfosMap map[string]*models.ReceptionInfo
+	receptionIDs := make([]string, len(receptions))
+	receptionByPvz := make(map[string][]models.ReceptionInfo, len(receptions))
 	for i, reception := range receptions {
-		receptionInfo := models.ReceptionInfo{
+		receptionByPvz[reception.PvzID] = append(receptionByPvz[reception.PvzID], models.ReceptionInfo{
 			Reception: reception,
-			Products:  nil,
-		}
-		receptionInfos[i] = receptionInfo
-		receptionInfosMap[reception.Id] = &receptionInfos[len(receptionInfos)-1]
-		receptionIds[i] = reception.Id
+		})
+		receptionIDs[i] = reception.ID
 	}
 
-	products, err := p.Deps.Repo.ROPvz().ListProductsByReceptionId(ctx, receptionIds)
+	products, err := p.Deps.Repo.ROPvz().ListProductsByReception(ctx, receptionIDs)
 	if err != nil {
 		return nil, fmt.Errorf("list pvz products: %w", err)
 	}
 
-	// building output
-	for _, product := range products {
-		receptionInfosMap[product.ReceptionId].Products = append(
-			receptionInfosMap[product.ReceptionId].Products,
-			product,
-		)
-	}
-	for _, receptionInfo := range receptionInfos {
-		pvzInfosMap[receptionInfo.Reception.PvzId].Receptions = append(
-			pvzInfosMap[receptionInfo.Reception.PvzId].Receptions,
-			receptionInfo,
-		)
+	productsByReception := lo.GroupBy(products, func(product models.Product) string {
+		return product.ReceptionID
+	})
+
+	for i := range pvzInfos {
+		pvzID := pvzInfos[i].PVZ.ID
+		pvzReceptions := receptionByPvz[pvzID]
+		for _, reception := range pvzReceptions {
+			reception.Products = productsByReception[reception.Reception.ID]
+		}
+
+		pvzInfos[i].Receptions = pvzReceptions
 	}
 
 	return pvzInfos, nil
 }
-func (p *PVZ) GetPVZList(ctx context.Context) ([]models.PVZ, error) {
+func (p *PVZ) ListPVZ(ctx context.Context) ([]models.PVZ, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/ListPVZ")
 	defer span.Finish()
 
 	pvzs, err := p.Deps.Repo.ROPvz().ListPVZ(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("get pvz list: %w", err)
+		return nil, fmt.Errorf("failed to list pvz: %w", err)
 	}
 
 	return pvzs, nil
 }
-func (p *PVZ) CreatePVZ(ctx context.Context, id, city string, registrationDate *time.Time) (models.PVZ, error) {
+
+func (p *PVZ) CreatePVZ(ctx context.Context, city string, id *string, registrationDate *time.Time) (*models.PVZ, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/CreatePVZ")
 	defer span.Finish()
 
-	validCity, err := p.Deps.Repo.ROPvz().CheckExistsCity(ctx, city)
-	if err != nil {
-		return models.PVZ{}, fmt.Errorf("create pvz: %w", err)
-	} else if !validCity {
-		return models.PVZ{}, ErrCityNotFound
+	var pvzID string
+	if id != nil {
+		pvzID = *id
+	} else {
+		pvzID = p.Deps.UUIDGenerator.GenerateUUID(ctx)
 	}
 
-	if len(id) == 0 {
-		id = p.Deps.UuidIssuer.Uuid(ctx)
+	var pvz *models.PVZ
+	var err error
+	if registrationDate != nil {
+		pvz, err = p.Deps.Repo.RWPvz().AddPVZWIthDate(ctx, pvzID, city, *registrationDate)
+	} else {
+		pvz, err = p.Deps.Repo.RWPvz().AddPVZ(ctx, pvzID, city)
 	}
-	if registrationDate == nil {
-		t := time.Now()
-		registrationDate = &t
-	}
-	pvz, err := p.Deps.Repo.RWPvz().AddPVZ(ctx, id, city, *registrationDate)
-	if err != nil {
-		return pvz, fmt.Errorf("create pvz: %w", err)
+
+	if errors.Is(err, postgres.ErrAlreadyExists) {
+		return nil, ErrIDIsOccupied
+	} else if errors.Is(err, postgres.ErrInvalidReference) {
+		return nil, ErrCityNotFound
+	} else if err != nil {
+		return nil, fmt.Errorf("failed to create pvz: %w", err)
 	}
 
 	return pvz, nil
 }
 
-func (p *PVZ) CreateReception(ctx context.Context, pvzId string) (models.Reception, error) {
+func (p *PVZ) CreateReception(ctx context.Context, pvzID string) (models.Reception, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/CreateReception")
 	defer span.Finish()
 
 	var reception models.Reception
 	err := p.Deps.Repo.RunInTx(ctx, func(tx postgres.RepositoryProvider) error {
-		_, err := tx.ROPvz().GetPVZ(ctx, pvzId)
+		_, err := tx.ROPvz().GetPVZ(ctx, pvzID)
 		if errors.Is(err, postgres.ErrNotFound) {
 			return ErrPVZNotFound
 		} else if err != nil {
-			return fmt.Errorf("create reception: %w", err)
+			return fmt.Errorf("failed to resolve pvz: %w", err)
 		}
 
-		lastReception, err := tx.ROPvz().GetLastReceptionByPVZ(ctx, pvzId)
+		lastReception, err := tx.ROPvz().GetLastReceptionByPVZ(ctx, pvzID)
 		if err != nil && !errors.Is(err, postgres.ErrNotFound) {
-			return fmt.Errorf("create reception: %w", err)
+			return fmt.Errorf("failed to pick last reception: %w", err)
 		}
 		if lastReception.ReceptionStatus == models.ReceptionStatusInProgress {
 			return ErrAnotherReceptionInProgress
 		}
 
-		reception, err = tx.RWPvz().AddReception(ctx, pvzId, models.ReceptionStatusInProgress)
+		reception, err = tx.RWPvz().AddReception(ctx, pvzID, models.ReceptionStatusInProgress)
 		if err != nil {
-			return fmt.Errorf("create reception: %w", err)
+			return fmt.Errorf("failed to create reception: %w", err)
 		}
 		return nil
 	}, pgx.Serializable)
 
 	return reception, err
 }
-func (p *PVZ) CloseLastReception(ctx context.Context, pvzId string) (models.Reception, error) {
+func (p *PVZ) CloseLastReception(ctx context.Context, pvzID string) (models.Reception, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/CloseLastReception")
 	defer span.Finish()
 
 	var reception models.Reception
 	err := p.Deps.Repo.RunInTx(ctx, func(tx postgres.RepositoryProvider) error {
-		_, err := tx.ROPvz().GetPVZ(ctx, pvzId)
+		_, err := tx.ROPvz().GetPVZ(ctx, pvzID)
 		if errors.Is(err, postgres.ErrNotFound) {
 			return ErrPVZNotFound
 		} else if err != nil {
-			return fmt.Errorf("close last reception: %w", err)
+			return fmt.Errorf("failed to resolve pvz: %w", err)
 		}
 
-		lastReception, err := tx.ROPvz().GetLastReceptionByPVZ(ctx, pvzId)
-		if errors.Is(err, postgres.ErrNotFound) {
+		if err := tx.RWPvz().CloseLastReceptionByPVZ(ctx, pvzID); errors.Is(err, postgres.ErrNotChanged) {
 			return ErrNoReceptionsInProgress
 		} else if err != nil {
-			return fmt.Errorf("close last reception: %w", err)
-		}
-		if lastReception.ReceptionStatus == models.ReceptionStatusClosed {
-			return ErrNoReceptionsInProgress
+			return fmt.Errorf("failed to close last reception: %w", err)
 		}
 
-		reception, err = tx.RWPvz().UpdateReception(ctx, lastReception.Id, models.ReceptionStatusClosed)
-		if err != nil {
-			return fmt.Errorf("close last reception: %w", err)
-		}
 		return nil
 	}, pgx.Serializable)
 
 	return reception, err
 }
 
-func (p *PVZ) CreateProduct(ctx context.Context, productType, pvzId string) (models.Product, error) {
+func (p *PVZ) CreateProduct(ctx context.Context, productType, pvzID string) (models.Product, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/CreateProduct")
 	defer span.Finish()
 
-	existsProductType, err := p.Deps.Repo.ROPvz().CheckExistsProductType(ctx, productType)
-	if err != nil {
-		return models.Product{}, fmt.Errorf("create product: %w", err)
-	} else if !existsProductType {
-		return models.Product{}, ErrProductTypeNotFound
-	}
-
 	var product models.Product
-	err = p.Deps.Repo.RunInTx(ctx, func(tx postgres.RepositoryProvider) error {
-		_, err := tx.ROPvz().GetPVZ(ctx, pvzId)
-		if errors.Is(err, postgres.ErrNotFound) {
+	err := p.Deps.Repo.RunInTx(ctx, func(tx postgres.RepositoryProvider) error {
+		if _, err := tx.ROPvz().GetPVZ(ctx, pvzID); errors.Is(err, postgres.ErrNotFound) {
 			return ErrPVZNotFound
 		} else if err != nil {
-			return fmt.Errorf("create product: %w", err)
+			return fmt.Errorf("failed to resolve pvz: %w", err)
 		}
 
-		reception, err := tx.ROPvz().GetLastReceptionByPVZ(ctx, pvzId)
+		reception, err := tx.ROPvz().GetLastReceptionByPVZ(ctx, pvzID)
 		if errors.Is(err, postgres.ErrNotFound) {
 			return ErrNoReceptionsInProgress
 		} else if err != nil {
-			return fmt.Errorf("create product: %w", err)
-		}
-		if reception.ReceptionStatus == models.ReceptionStatusClosed {
+			return fmt.Errorf("failed to get last reception: %w", err)
+		} else if reception.ReceptionStatus == models.ReceptionStatusClosed {
 			return ErrNoReceptionsInProgress
 		}
 
-		product, err = tx.RWPvz().AddProductToReception(ctx, productType, pvzId)
-		if err != nil {
-			return fmt.Errorf("create product: %w", err)
+		product, err = tx.RWPvz().AddProductToReception(ctx, productType, pvzID)
+		if errors.Is(err, postgres.ErrInvalidReference) {
+			return ErrProductTypeNotFound
+		} else if err != nil {
+			return fmt.Errorf("failed to create product in reception: %w", err)
 		}
 		return nil
 	}, pgx.Serializable)
 
 	return product, err
 }
-func (p *PVZ) DeleteLastProduct(ctx context.Context, pvzId string) (string, error) {
+func (p *PVZ) DeleteLastProduct(ctx context.Context, pvzID string) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "PVZ/DeleteLastProduct")
 	defer span.Finish()
 
 	err := p.Deps.Repo.RunInTx(ctx, func(tx postgres.RepositoryProvider) error {
-		_, err := tx.ROPvz().GetPVZ(ctx, pvzId)
-		if errors.Is(err, postgres.ErrNotFound) {
+		if _, err := tx.ROPvz().GetPVZ(ctx, pvzID); errors.Is(err, postgres.ErrNotFound) {
 			return ErrPVZNotFound
 		} else if err != nil {
-			return fmt.Errorf("delete last product: %w", err)
+			return fmt.Errorf("failed to resolve pvz: %w", err)
 		}
 
-		reception, err := tx.ROPvz().GetLastReceptionByPVZ(ctx, pvzId)
-		if errors.Is(err, postgres.ErrNotFound) {
-			return ErrNoReceptionsInProgress
-		} else if err != nil {
-			return fmt.Errorf("delete last product: %w", err)
-		}
-		if reception.ReceptionStatus == models.ReceptionStatusClosed {
-			return ErrNoReceptionsInProgress
-		}
-
-		product, err := tx.ROPvz().GetLastProductByReception(ctx, reception.Id)
-		if errors.Is(err, postgres.ErrNotFound) {
+		if err := tx.RWPvz().DeleteLastProduct(ctx, pvzID); errors.Is(err, postgres.ErrNotChanged) {
 			return ErrNoProducts
 		} else if err != nil {
-			return fmt.Errorf("delete last product: %w", err)
+			return fmt.Errorf("failed to delete last product: %w", err)
 		}
 
-		err = tx.RWPvz().DeleteProduct(ctx, product.Id)
-		if err != nil {
-			return fmt.Errorf("delete last product: %w", err)
-		}
 		return nil
 	}, pgx.Serializable)
 
-	if err != nil {
-		return "last product not deleted", err
-	}
-	return "last product deleted", err
+	return err
 }
 
 var (

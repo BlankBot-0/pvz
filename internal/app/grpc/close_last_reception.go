@@ -22,9 +22,9 @@ func (s *Service) CloseLastReception(ctx context.Context, request *pvzpb.CloseLa
 
 	return &pvzpb.CloseLastReceptionResponse{
 		Reception: &pvzpb.Reception{
-			Id:       res.Id,
+			Id:       res.ID,
 			DateTime: timestamppb.New(res.DateTime),
-			PvzId:    res.PvzId,
+			PvzId:    res.PvzID,
 			Status:   res.ReceptionStatus,
 		},
 	}, nil

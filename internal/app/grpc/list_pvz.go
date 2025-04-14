@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Service) ListPVZ(ctx context.Context, request *pvzpb.ListPVZRequest) (*pvzpb.ListPVZResponse, error) {
-	res, err := s.PVZ.ListPVZ(
+	res, err := s.PVZ.ListPVZPaginated(
 		ctx,
 		request.StartDate.AsTime(), request.EndDate.AsTime(),
 		request.Page, request.Limit,
@@ -24,7 +24,7 @@ func (s *Service) ListPVZ(ctx context.Context, request *pvzpb.ListPVZRequest) (*
 		Pvzs: lo.Map(res, func(pvzInfo models.PVZInfo, _ int) *pvzpb.ListPVZResponsePvzInfo {
 			return &pvzpb.ListPVZResponsePvzInfo{
 				Pvz: &pvzpb.PVZ{
-					Id:               &pvzInfo.PVZ.Id,
+					Id:               &pvzInfo.PVZ.ID,
 					RegistrationDate: timestamppb.New(pvzInfo.PVZ.RegistrationDate),
 					City:             pvzInfo.PVZ.City,
 				},
@@ -36,9 +36,9 @@ func (s *Service) ListPVZ(ctx context.Context, request *pvzpb.ListPVZRequest) (*
 		list.Pvzs[i].Receptions = lo.Map(pvzInfo.Receptions, func(reception models.ReceptionInfo, _ int) *pvzpb.ListPVZResponseReceptionInfo {
 			return &pvzpb.ListPVZResponseReceptionInfo{
 				Reception: &pvzpb.Reception{
-					Id:       reception.Reception.Id,
+					Id:       reception.Reception.ID,
 					DateTime: timestamppb.New(reception.Reception.DateTime),
-					PvzId:    reception.Reception.PvzId,
+					PvzId:    reception.Reception.PvzID,
 					Status:   reception.Reception.ReceptionStatus,
 				},
 			}
@@ -50,10 +50,10 @@ func (s *Service) ListPVZ(ctx context.Context, request *pvzpb.ListPVZRequest) (*
 			list.Pvzs[i].Receptions[j].Products = lo.Map(reception.Products, func(product models.Product, _ int) *pvzpb.Product {
 
 				return &pvzpb.Product{
-					Id:          product.Id,
+					Id:          product.ID,
 					DateTime:    timestamppb.New(product.DateTime),
 					Type:        product.Type,
-					ReceptionId: product.ReceptionId,
+					ReceptionId: product.ReceptionID,
 				}
 			})
 		}

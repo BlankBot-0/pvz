@@ -9,15 +9,15 @@ import (
 
 type (
 	pvzService interface {
-		ListPVZ(ctx context.Context, startDate, endDate time.Time, page, limit uint32) ([]models.PVZInfo, error)
-		GetPVZList(ctx context.Context) ([]models.PVZ, error)
-		CreatePVZ(ctx context.Context, id, city string, registrationDate *time.Time) (models.PVZ, error)
+		ListPVZPaginated(ctx context.Context, startDate time.Time, endDate time.Time, page uint32, limit uint32) ([]models.PVZInfo, error)
+		ListPVZ(ctx context.Context) ([]models.PVZ, error)
+		CreatePVZ(ctx context.Context, city string, id *string, registrationDate *time.Time) (*models.PVZ, error)
 
-		CreateReception(ctx context.Context, pvzId string) (models.Reception, error)
-		CloseLastReception(ctx context.Context, pvzId string) (models.Reception, error)
+		CreateReception(ctx context.Context, pvzID string) (models.Reception, error)
+		CloseLastReception(ctx context.Context, pvzID string) (models.Reception, error)
 
-		CreateProduct(ctx context.Context, productType, pvzId string) (models.Product, error)
-		DeleteLastProduct(ctx context.Context, pvzId string) (string, error)
+		CreateProduct(ctx context.Context, productType string, pvzID string) (models.Product, error)
+		DeleteLastProduct(ctx context.Context, pvzID string) error
 	}
 	authService interface {
 		DummyLogin(ctx context.Context, role string) (string, error)

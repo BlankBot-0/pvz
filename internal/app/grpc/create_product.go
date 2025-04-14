@@ -21,9 +21,9 @@ func (s *Service) CreateProduct(ctx context.Context, request *pvzpb.CreateProduc
 	}
 
 	return &pvzpb.CreateProductResponse{Product: &pvzpb.Product{
-		Id:          res.Id,
+		Id:          res.ID,
 		DateTime:    timestamppb.New(res.DateTime),
 		Type:        res.Type,
-		ReceptionId: res.ReceptionId,
+		ReceptionId: res.ReceptionID,
 	}}, nil
 }

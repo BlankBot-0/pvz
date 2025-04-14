@@ -14,25 +14,25 @@ type (
 	ROPVZ interface {
 		ListPVZPaginated(ctx context.Context, startDate time.Time, endDate time.Time, offset uint32, limit uint32) ([]models.PVZ, error)
 		ListPVZ(ctx context.Context) ([]models.PVZ, error)
-		ListReceptionsByPVZId(ctx context.Context, pvzIds []string) ([]models.Reception, error)
+		ListReceptionsByPVZ(ctx context.Context, pvzIds []string) ([]models.Reception, error)
 		GetLastReceptionByPVZ(ctx context.Context, pvzId string) (models.Reception, error)
-		ListProductsByReceptionId(ctx context.Context, receptionIds []string) ([]models.Product, error)
+		ListProductsByReception(ctx context.Context, receptionIds []string) ([]models.Product, error)
 		GetPVZ(ctx context.Context, pvzId string) (models.PVZ, error)
 	}
 
 	// RWPVZ is a read-write repository
 	RWPVZ interface {
-		AddPVZ(ctx context.Context, id string, city string) error
-		AddPVZWIthDate(ctx context.Context, id string, city string, registrationDate time.Time) error
+		AddPVZ(ctx context.Context, id string, city string) (*models.PVZ, error)
+		AddPVZWIthDate(ctx context.Context, id string, city string, registrationDate time.Time) (*models.PVZ, error)
 		AddReception(ctx context.Context, pvzId string, status string) (models.Reception, error)
-		CloseLastReceptionByPVZId(ctx context.Context, pvzId string) error
+		CloseLastReceptionByPVZ(ctx context.Context, pvzId string) error
 		AddProductToReception(ctx context.Context, productType string, receptionId string) (models.Product, error)
 		DeleteLastProduct(ctx context.Context, pvzId string) error
 		ROPVZ
 	}
 
 	ROUsers interface {
-		UserById(ctx context.Context, userId string) (models.User, error)
+		UserByID(ctx context.Context, userId string) (models.User, error)
 		UserByEmail(ctx context.Context, email string) (models.User, error)
 	}
 

@@ -8,20 +8,20 @@ type PVZInfo struct {
 }
 
 type PVZ struct {
-	Id               string
+	ID               string
 	RegistrationDate time.Time
 	City             string
 }
 
 type Reception struct {
-	Id              string
+	ID              string
 	DateTime        time.Time
-	PvzId           string
+	PvzID           string
 	ReceptionStatus string
 }
 
 type User struct {
-	Id           string
+	ID           string
 	Email        string
 	PasswordHash string
 	Role         string
@@ -33,10 +33,10 @@ type ReceptionInfo struct {
 }
 
 type Product struct {
-	Id          string
+	ID          string
 	DateTime    time.Time
 	Type        string
-	ReceptionId string
+	ReceptionID string
 }
 
 const (

@@ -118,7 +118,7 @@ PHONY: .protoc-generate
 .protoc-generate:
 	mkdir -p pkg/${PROTO_PATH}
 	mkdir -p api/openapiv2
-	$(PROTOC) -I ${PROTO_PATH} -I vendor-proto \
+	$(PROTOC) --experimental_allow_proto3_optional -I ${PROTO_PATH} -I vendor-proto \
 	--plugin=protoc-gen-go=$(LOCAL_BIN)/protoc-gen-go --go_out pkg/${PROTO_PATH} --go_opt paths=source_relative \
 	--plugin=protoc-gen-go-grpc=$(LOCAL_BIN)/protoc-gen-go-grpc --go-grpc_out pkg/${PROTO_PATH} --go-grpc_opt paths=source_relative \
 	--plugin=protoc-gen-grpc-gateway=$(LOCAL_BIN)/protoc-gen-grpc-gateway --grpc-gateway_out pkg/${PROTO_PATH} --grpc-gateway_opt logtostderr=true --grpc-gateway_opt paths=source_relative --grpc-gateway_opt generate_unbound_methods=true \
