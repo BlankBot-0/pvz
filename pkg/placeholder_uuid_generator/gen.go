@@ -1,4 +1,4 @@
-package dummyUUIDGenerator
+package placeholder_uuid_generator
 
 import (
 	"context"

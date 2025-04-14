@@ -15,7 +15,6 @@ import (
 	pvz_service "pvz/internal/app/grpc"
 	"pvz/internal/auth"
 	"pvz/internal/config"
-	"pvz/internal/dummyUUIDGenerator"
 	"pvz/internal/jaeger"
 	"pvz/internal/logger"
 	"pvz/internal/mw"
@@ -24,6 +23,7 @@ import (
 	"pvz/internal/usecase/pvz"
 	pvzpb "pvz/pkg/api/v1"
 	"pvz/pkg/closer"
+	"pvz/pkg/placeholder_uuid_generator"
 	"syscall"
 )
 
@@ -58,7 +58,7 @@ func main() {
 
 	pvzService := pvz.New(pvz.Deps{
 		Repo:          conn,
-		UUIDGenerator: &dummyUUIDGenerator.Generator{},
+		UUIDGenerator: &placeholder_uuid_generator.Generator{},
 	})
 	authService := auth_service.NewAuthService(auth_service.Deps{
 		Issuer: authCore,
