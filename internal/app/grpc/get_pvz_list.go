@@ -1,4 +1,4 @@
-package merch_store
+package pvz
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"pvz/internal/models"
 	pvzpb "pvz/pkg/api/v1"
 )
@@ -14,14 +13,15 @@ import (
 func (s *Service) GetPVZList(ctx context.Context, _ *emptypb.Empty) (*pvzpb.GetPVZListResponse, error) {
 	res, err := s.PVZ.ListPVZ(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "unexpected error while getting pvz list")
+		return nil, status.Errorf(codes.Internal, "unexpected error while getting pvz list: %s", err.Error())
 	}
 
 	return &pvzpb.GetPVZListResponse{
 		Pvzs: lo.Map(res, func(pvz models.PVZ, _ int) *pvzpb.PVZ {
+
 			return &pvzpb.PVZ{
 				Id:               &pvz.ID,
-				RegistrationDate: timestamppb.New(pvz.RegistrationDate),
+				RegistrationDate: lo.ToPtr(pvz.RegistrationDate.Format(s.datetimeFormat)),
 				City:             pvz.City,
 			}
 		}),

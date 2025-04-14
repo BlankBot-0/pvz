@@ -1,4 +1,4 @@
-package merch_store
+package pvz
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	pvzService interface {
+	PVZService interface {
 		ListPVZPaginated(ctx context.Context, startDate time.Time, endDate time.Time, page uint32, limit uint32) ([]models.PVZInfo, error)
 		ListPVZ(ctx context.Context) ([]models.PVZ, error)
 		CreatePVZ(ctx context.Context, city string, id *string, registrationDate *time.Time) (*models.PVZ, error)
@@ -19,7 +19,7 @@ type (
 		CreateProduct(ctx context.Context, productType string, pvzID string) (models.Product, error)
 		DeleteLastProduct(ctx context.Context, pvzID string) error
 	}
-	authService interface {
+	AuthService interface {
 		DummyLogin(ctx context.Context, role string) (string, error)
 		Register(ctx context.Context, email, password, role string) (models.User, error)
 		UserToken(ctx context.Context, email, password string) (string, error)
@@ -34,17 +34,25 @@ type ListPvzParams struct {
 }
 
 type Deps struct {
-	PVZ  pvzService
-	Auth authService
+	PVZ  PVZService
+	Auth AuthService
 }
 
 type Service struct {
-	pvzpb.PVZServiceServer
+	pvzpb.UnimplementedPVZServiceServer
 	Deps
+
+	datetimeFormat string
 }
 
-func NewService(deps Deps) *Service {
+func NewService(datetimeFormat string, deps Deps) *Service {
 	return &Service{
-		Deps: deps,
+		Deps:           deps,
+		datetimeFormat: datetimeFormat,
 	}
 }
+
+const (
+	employeeRole  = "employee"
+	moderatorRole = "moderator"
+)

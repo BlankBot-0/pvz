@@ -69,6 +69,8 @@ func (a *AuthService) Register(ctx context.Context, email, password, role string
 	id, err := a.Deps.Repo.RWUsers().CreateUser(ctx, email, string(passwordHashRaw), role)
 	if errors.Is(err, postgres.ErrAlreadyExists) {
 		return models.User{}, ErrUserAlreadyExists
+	} else if errors.Is(err, postgres.ErrInvalidReference) {
+		return models.User{}, ErrInvalidRole
 	} else if err != nil {
 		return models.User{}, err
 	}
@@ -84,6 +86,13 @@ func (a *AuthService) Register(ctx context.Context, email, password, role string
 func (a *AuthService) DummyLogin(ctx context.Context, role string) (string, error) {
 	span, ctx := opentracing.StartSpanFromContext(ctx, "Auth/DummyLogin")
 	defer span.Finish()
+
+	err := a.Deps.Repo.ROUsers().ValidateRole(ctx, role)
+	if errors.Is(err, postgres.ErrNotFound) {
+		return "", ErrInvalidRole
+	} else if err != nil {
+		return "", fmt.Errorf("failed to validate role: %w", err)
+	}
 
 	return a.Deps.Issuer.Issue(role)
 }

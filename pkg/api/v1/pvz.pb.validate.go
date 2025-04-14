@@ -57,63 +57,9 @@ func (m *ListPVZRequest) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetStartDate()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ListPVZRequestValidationError{
-					field:  "StartDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ListPVZRequestValidationError{
-					field:  "StartDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetStartDate()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ListPVZRequestValidationError{
-				field:  "StartDate",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for StartDate
 
-	if all {
-		switch v := interface{}(m.GetEndDate()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ListPVZRequestValidationError{
-					field:  "EndDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ListPVZRequestValidationError{
-					field:  "EndDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetEndDate()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ListPVZRequestValidationError{
-				field:  "EndDate",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for EndDate
 
 	// no validation rules for Page
 
@@ -360,36 +306,7 @@ func (m *CreatePVZRequest) validate(all bool) error {
 	}
 
 	if m.RegistrationDate != nil {
-
-		if all {
-			switch v := interface{}(m.GetRegistrationDate()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, CreatePVZRequestValidationError{
-						field:  "RegistrationDate",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, CreatePVZRequestValidationError{
-						field:  "RegistrationDate",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetRegistrationDate()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return CreatePVZRequestValidationError{
-					field:  "RegistrationDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
+		// no validation rules for RegistrationDate
 	}
 
 	if len(errors) > 0 {
@@ -2434,36 +2351,7 @@ func (m *PVZ) validate(all bool) error {
 	}
 
 	if m.RegistrationDate != nil {
-
-		if all {
-			switch v := interface{}(m.GetRegistrationDate()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, PVZValidationError{
-						field:  "RegistrationDate",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, PVZValidationError{
-						field:  "RegistrationDate",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetRegistrationDate()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return PVZValidationError{
-					field:  "RegistrationDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
+		// no validation rules for RegistrationDate
 	}
 
 	if len(errors) > 0 {

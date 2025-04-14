@@ -10,7 +10,7 @@ create table users
 
 create table pvzs
 (
-    id                uuid primary key,
+    id                text primary key,
     registration_date timestamp default now(),
     city_id           int references cities(id)
 );
@@ -20,7 +20,7 @@ create table receptions
     id     uuid primary key,
     date   timestamp default now(),
     status text,
-    pvz_id uuid
+    pvz_id text
 );
 
 create table products

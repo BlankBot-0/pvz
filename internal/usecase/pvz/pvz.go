@@ -38,7 +38,7 @@ func (p *PVZ) ListPVZPaginated(ctx context.Context, startDate, endDate time.Time
 	offset := (page - 1) * limit
 	pvzs, err := p.Deps.Repo.ROPvz().ListPVZPaginated(ctx, startDate, endDate, offset, limit)
 	if err != nil {
-		return nil, fmt.Errorf("list pvz: %w", err)
+		return nil, fmt.Errorf("failed to get paginated pvz list: %w", err)
 	}
 
 	pvzInfos := make([]models.PVZInfo, len(pvzs))
@@ -50,7 +50,7 @@ func (p *PVZ) ListPVZPaginated(ctx context.Context, startDate, endDate time.Time
 
 	receptions, err := p.Deps.Repo.ROPvz().ListReceptionsByPVZ(ctx, pvzIDs)
 	if err != nil {
-		return nil, fmt.Errorf("list pvz receptions: %w", err)
+		return nil, fmt.Errorf("failed to list pvz receptions: %w", err)
 	}
 
 	receptionIDs := make([]string, len(receptions))
@@ -64,7 +64,7 @@ func (p *PVZ) ListPVZPaginated(ctx context.Context, startDate, endDate time.Time
 
 	products, err := p.Deps.Repo.ROPvz().ListProductsByReception(ctx, receptionIDs)
 	if err != nil {
-		return nil, fmt.Errorf("list pvz products: %w", err)
+		return nil, fmt.Errorf("failed to list pvz products: %w", err)
 	}
 
 	productsByReception := lo.GroupBy(products, func(product models.Product) string {
@@ -74,8 +74,8 @@ func (p *PVZ) ListPVZPaginated(ctx context.Context, startDate, endDate time.Time
 	for i := range pvzInfos {
 		pvzID := pvzInfos[i].PVZ.ID
 		pvzReceptions := receptionByPvz[pvzID]
-		for _, reception := range pvzReceptions {
-			reception.Products = productsByReception[reception.Reception.ID]
+		for i, reception := range pvzReceptions {
+			pvzReceptions[i].Products = productsByReception[reception.Reception.ID]
 		}
 
 		pvzInfos[i].Receptions = pvzReceptions
@@ -168,7 +168,7 @@ func (p *PVZ) CloseLastReception(ctx context.Context, pvzID string) (models.Rece
 			return fmt.Errorf("failed to resolve pvz: %w", err)
 		}
 
-		if err := tx.RWPvz().CloseLastReceptionByPVZ(ctx, pvzID); errors.Is(err, postgres.ErrNotChanged) {
+		if reception, err = tx.RWPvz().CloseLastReceptionByPVZ(ctx, pvzID); errors.Is(err, postgres.ErrNotChanged) {
 			return ErrNoReceptionsInProgress
 		} else if err != nil {
 			return fmt.Errorf("failed to close last reception: %w", err)
@@ -201,7 +201,7 @@ func (p *PVZ) CreateProduct(ctx context.Context, productType, pvzID string) (mod
 			return ErrNoReceptionsInProgress
 		}
 
-		product, err = tx.RWPvz().AddProductToReception(ctx, productType, pvzID)
+		product, err = tx.RWPvz().AddProductToReception(ctx, productType, reception.ID)
 		if errors.Is(err, postgres.ErrInvalidReference) {
 			return ErrProductTypeNotFound
 		} else if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -14,6 +15,8 @@ import (
 	pvz_service "pvz/internal/app/grpc"
 	"pvz/internal/auth"
 	"pvz/internal/config"
+	"pvz/internal/dummyUUIDGenerator"
+	"pvz/internal/jaeger"
 	"pvz/internal/logger"
 	"pvz/internal/mw"
 	"pvz/internal/postgres"
@@ -49,24 +52,34 @@ func main() {
 		return nil
 	})
 
-	conn, err := postgres.Connect(ctx, cfg.Dsn)
+	conn, err := postgres.Connect(ctx, "postgresql://postgres:password@localhost:5432/pvz") //cfg.Dsn)
 	if err != nil {
 		log.Fatalf("db connection failed: %s", err)
 	}
 
 	pvzService := pvz.New(pvz.Deps{
-		Repo: conn,
+		Repo:          conn,
+		UUIDGenerator: &dummyUUIDGenerator.Generator{},
 	})
 	authService := auth_service.NewAuthService(auth_service.Deps{
 		Issuer: authCore,
 		Repo:   conn,
 	})
 
-	service := pvz_service.NewService(pvz_service.Deps{
-		PVZ:  pvzService,
-		Auth: authService,
-	})
+	service := pvz_service.NewService(
+		cfg.DateTimeFormat,
+		pvz_service.Deps{
+			PVZ:  pvzService,
+			Auth: authService,
+		})
 
+	tracer, tracerCloser, err := jaeger.InitJaeger(&cfg.Jaeger)
+	if err != nil {
+		log.Fatalf("init jaeger failed: %s", err)
+	}
+	c.Add(tracerCloser.Close)
+
+	opentracing.SetGlobalTracer(tracer)
 	pvzpb.RegisterPVZServiceServer(grpcServer, service)
 	reflection.Register(grpcServer)
 

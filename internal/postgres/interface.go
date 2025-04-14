@@ -25,7 +25,7 @@ type (
 		AddPVZ(ctx context.Context, id string, city string) (*models.PVZ, error)
 		AddPVZWIthDate(ctx context.Context, id string, city string, registrationDate time.Time) (*models.PVZ, error)
 		AddReception(ctx context.Context, pvzId string, status string) (models.Reception, error)
-		CloseLastReceptionByPVZ(ctx context.Context, pvzId string) error
+		CloseLastReceptionByPVZ(ctx context.Context, pvzId string) (models.Reception, error)
 		AddProductToReception(ctx context.Context, productType string, receptionId string) (models.Product, error)
 		DeleteLastProduct(ctx context.Context, pvzId string) error
 		ROPVZ
@@ -34,6 +34,7 @@ type (
 	ROUsers interface {
 		UserByID(ctx context.Context, userId string) (models.User, error)
 		UserByEmail(ctx context.Context, email string) (models.User, error)
+		ValidateRole(ctx context.Context, role string) error
 	}
 
 	RWUsers interface {

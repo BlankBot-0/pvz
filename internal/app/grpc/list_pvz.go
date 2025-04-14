@@ -1,4 +1,4 @@
-package merch_store
+package pvz
 
 import (
 	"context"
@@ -6,18 +6,32 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"pvz/internal/auth"
 	"pvz/internal/models"
 	pvzpb "pvz/pkg/api/v1"
+	"time"
 )
 
 func (s *Service) ListPVZ(ctx context.Context, request *pvzpb.ListPVZRequest) (*pvzpb.ListPVZResponse, error) {
+	if role := auth.GetUserRoleFromCtx(ctx); role != moderatorRole && role != employeeRole {
+		return nil, status.Error(codes.PermissionDenied, "permission denied")
+	}
+
+	startDate, err := time.Parse(s.datetimeFormat, request.StartDate)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid start date format: %s", err)
+	}
+	endDate, err := time.Parse(s.datetimeFormat, request.EndDate)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid end date format: %s", err)
+	}
 	res, err := s.PVZ.ListPVZPaginated(
 		ctx,
-		request.StartDate.AsTime(), request.EndDate.AsTime(),
+		startDate, endDate,
 		request.Page, request.Limit,
 	)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Unexpected error while listing pvz")
+		return nil, status.Errorf(codes.Internal, "unexpected error while listing pvz: %s", err.Error())
 	}
 
 	list := &pvzpb.ListPVZResponse{
@@ -25,7 +39,7 @@ func (s *Service) ListPVZ(ctx context.Context, request *pvzpb.ListPVZRequest) (*
 			return &pvzpb.ListPVZResponsePvzInfo{
 				Pvz: &pvzpb.PVZ{
 					Id:               &pvzInfo.PVZ.ID,
-					RegistrationDate: timestamppb.New(pvzInfo.PVZ.RegistrationDate),
+					RegistrationDate: lo.ToPtr(pvzInfo.PVZ.RegistrationDate.Format(s.datetimeFormat)),
 					City:             pvzInfo.PVZ.City,
 				},
 			}

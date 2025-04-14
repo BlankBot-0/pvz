@@ -50,13 +50,13 @@ func (p PVZRepoFake) AddPVZ(_ context.Context, city string) (models.PVZ, error) 
 	}
 
 	pvz := models.PVZ{
-		ID:               uuid.New().String(),
+		Id:               uuid.New().String(),
 		RegistrationDate: time.Now(),
 		City:             city,
 	}
 
 	p.Pvzs = append(p.Pvzs, pvz)
-	p.PvzsById[pvz.ID] = p.Pvzs[len(p.Pvzs)-1]
+	p.PvzsById[pvz.Id] = p.Pvzs[len(p.Pvzs)-1]
 	return pvz, nil
 }
 
@@ -66,15 +66,15 @@ func (p PVZRepoFake) AddReception(_ context.Context, pvzId string, status string
 	}
 
 	reception := models.Reception{
-		ID:              uuid.New().String(),
+		Id:              uuid.New().String(),
 		DateTime:        time.Now(),
-		PvzID:           pvzId,
+		PvzId:           pvzId,
 		ReceptionStatus: status,
 	}
 
-	p.ReceptionsByPVZId[reception.PvzID][reception.ID] = reception
-	p.ReceptionsById[reception.ID] = reception
-	p.LastReceptionIdByPVZId[reception.PvzID] = reception.ID
+	p.ReceptionsByPVZId[reception.PvzId][reception.Id] = reception
+	p.ReceptionsById[reception.Id] = reception
+	p.LastReceptionIdByPVZId[reception.PvzId] = reception.Id
 	return reception, nil
 }
 
@@ -90,7 +90,7 @@ func (p PVZRepoFake) UpdateReception(_ context.Context, receptionId string, stat
 
 	r.ReceptionStatus = status
 	p.ReceptionsById[receptionId] = r
-	p.ReceptionsByPVZId[r.PvzID][r.ID] = r
+	p.ReceptionsByPVZId[r.PvzId][r.Id] = r
 
 	return r, nil
 }
@@ -101,15 +101,15 @@ func (p PVZRepoFake) AddProductToReception(_ context.Context, productType string
 	}
 
 	product := models.Product{
-		ID:          uuid.New().String(),
+		Id:          uuid.New().String(),
 		DateTime:    time.Now(),
 		Type:        productType,
-		ReceptionID: receptionId,
+		ReceptionId: receptionId,
 	}
 
-	p.ProductsByReceptionId[product.ReceptionID][product.ID] = product
-	p.ProductsById[product.ID] = product
-	p.LastProductIdByReceptionId[product.ReceptionID] = product.ID
+	p.ProductsByReceptionId[product.ReceptionId][product.Id] = product
+	p.ProductsById[product.Id] = product
+	p.LastProductIdByReceptionId[product.ReceptionId] = product.Id
 	return product, nil
 }
 
@@ -118,7 +118,7 @@ func (p PVZRepoFake) DeleteProduct(_ context.Context, productId string) error {
 		return p.DeleteProductErr
 	}
 
-	receptionId := p.ProductsById[productId].ReceptionID
+	receptionId := p.ProductsById[productId].ReceptionId
 
 	delete(p.ProductsByReceptionId[receptionId], productId)
 	delete(p.ProductsById, productId)

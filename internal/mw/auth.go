@@ -64,5 +64,6 @@ func AuthInterceptor(verifier tokenVerifier) grpc.UnaryServerInterceptor {
 var handlerWhitelistAuth = map[string]struct{}{
 	pvzpb.PVZService_DummyLogin_FullMethodName: {},
 	pvzpb.PVZService_Register_FullMethodName:   {},
+	pvzpb.PVZService_Login_FullMethodName:      {},
 	pvzpb.PVZService_GetPVZList_FullMethodName: {},
 }

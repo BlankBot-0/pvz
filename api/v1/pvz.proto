@@ -21,6 +21,7 @@ service PVZService {
   rpc CreatePVZ(CreatePVZRequest) returns (CreatePVZResponse) {
     option (google.api.http) = {
       post: "/pvz",
+      body: "*",
       response_body: "pvz"
     };
   };
@@ -28,18 +29,21 @@ service PVZService {
   rpc CreateReception(CreateReceptionRequest) returns (CreateReceptionResponse) {
     option (google.api.http) = {
       post: "/receptions",
+      body: "*",
       response_body: "reception"
     };
   };
   rpc CloseLastReception(CloseLastReceptionRequest) returns (CloseLastReceptionResponse) {
     option (google.api.http) = {
       post: "/pvz/{pvzId}/close_last_reception",
+      body: "*",
       response_body: "reception"
     };
   };
   rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse) {
     option (google.api.http) = {
       post: "/products",
+      body: "*",
       response_body: "product"
     };
   };
@@ -52,17 +56,20 @@ service PVZService {
   rpc DummyLogin(DummyLoginRequest) returns (DummyLoginResponse) {
     option (google.api.http) = {
       post: "/dummyLogin",
+      body: "*",
       response_body: "token"
     };
   };
   rpc Register(RegisterRequest) returns (RegisterResponse) {
     option (google.api.http) = {
       post: "/register"
+      body: "*",
     };
   };
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/login",
+      body: "*",
       response_body: "token"
     };
   };
@@ -71,8 +78,8 @@ service PVZService {
 }
 
 message ListPVZRequest {
-  google.protobuf.Timestamp startDate = 1;
-  google.protobuf.Timestamp endDate = 2;
+  string startDate = 1;
+  string endDate = 2;
   uint32 page = 3;
   uint32 limit = 4;
 }
@@ -92,7 +99,7 @@ message ListPVZResponse {
 
 message CreatePVZRequest {
   optional string id = 1;
-  optional google.protobuf.Timestamp registrationDate = 2;
+  optional string registrationDate = 2;
   string city = 3;
 }
 
@@ -168,7 +175,7 @@ message GetPVZListResponse {
 
 message PVZ {
   optional string id = 1;
-  optional google.protobuf.Timestamp registration_date = 2;
+  optional string registration_date = 2;
   string city = 3;
 }
 

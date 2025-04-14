@@ -25,7 +25,7 @@ func (u *UsersRepoFake) CreateUser(_ context.Context, email, passwordHash, role 
 	}
 	u.lastId = uuid.New().String()
 	u.users = append(u.users, models.User{
-		ID:           u.lastId,
+		Id:           u.lastId,
 		Email:        email,
 		PasswordHash: passwordHash,
 		Role:         role,
@@ -33,13 +33,13 @@ func (u *UsersRepoFake) CreateUser(_ context.Context, email, passwordHash, role 
 	return u.lastId, nil
 }
 
-func (u *UsersRepoFake) UserByID(_ context.Context, userId string) (models.User, error) {
+func (u *UsersRepoFake) UserById(_ context.Context, userId string) (models.User, error) {
 	if u.UserByIdErr != nil {
 		return models.User{}, u.UserByIdErr
 	}
 
 	user, ok := lo.Find(u.users, func(item models.User) bool {
-		return item.ID == userId
+		return item.Id == userId
 	})
 	if !ok {
 		return user, postgres.ErrNotFound
