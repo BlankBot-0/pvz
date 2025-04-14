@@ -132,7 +132,9 @@ func runHttpServer(cfg config.HTTPServer, httpServer *http.Server) {
 }
 
 func registerGatewayMux(tcpListener net.Listener) (*http.ServeMux, func() error, error) {
-	gatewayMux := runtime.NewServeMux()
+	gatewayMux := runtime.NewServeMux(
+		runtime.WithForwardResponseOption(mw.ForwardResponseFunc),
+	)
 
 	conn, err := grpc.NewClient(
 		tcpListener.Addr().String(),

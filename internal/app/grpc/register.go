@@ -5,6 +5,7 @@ import (
 	"errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"net/http"
 	"pvz/internal/usecase/auth"
 	pvzpb "pvz/pkg/api/v1"
 )
@@ -22,6 +23,7 @@ func (s *Service) Register(ctx context.Context, request *pvzpb.RegisterRequest) 
 		return nil, status.Errorf(codes.Internal, "unexpected error while registering user: %s", err.Error())
 	}
 
+	SetHTTPCode(ctx, http.StatusCreated)
 	return &pvzpb.RegisterResponse{
 		Id:    res.ID,
 		Email: res.Email,

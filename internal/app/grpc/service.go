@@ -2,7 +2,11 @@ package pvz
 
 import (
 	"context"
+	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"pvz/internal/models"
+	"pvz/internal/mw"
 	pvzpb "pvz/pkg/api/v1"
 	"time"
 )
@@ -50,6 +54,11 @@ func NewService(datetimeFormat string, deps Deps) *Service {
 		Deps:           deps,
 		datetimeFormat: datetimeFormat,
 	}
+}
+
+func SetHTTPCode(ctx context.Context, code int) {
+	md := metadata.Pairs(mw.HttpCodeHeader, fmt.Sprint(code))
+	grpc.SetHeader(ctx, md)
 }
 
 const (

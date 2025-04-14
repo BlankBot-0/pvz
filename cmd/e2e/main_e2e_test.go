@@ -1,14 +1,16 @@
-package main
+package e2e
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
 	"io"
 	"net/http"
-	"pvz/internal/models"
 	"strings"
 	"testing"
 )
+
+//go:generate go tool oapi-codegen -config oapi-codegen-cfg.yaml ../../api/openapiv2/app.swagger.yaml
 
 const (
 	url = "http://localhost:8080"
@@ -56,7 +58,7 @@ func Test_ReceptionCycle(t *testing.T) {
 	newReceptionResponse, err := newReceptionRequest(employeeToken, pvz.ID)
 	if err != nil {
 		t.Fatalf("newReceptionRequest error: %s", err.Error())
-	} else if newReceptionResponse.StatusCode != http.StatusOK {
+	} else if newReceptionResponse.StatusCode != http.StatusCreated {
 		t.Fatalf("newReceptionRequest returned wrong status code: %d", newReceptionResponse.StatusCode)
 	}
 
@@ -65,7 +67,7 @@ func Test_ReceptionCycle(t *testing.T) {
 		resp, err := newProductRequest(employeeToken, pvz.ID, productTypes[i%len(productTypes)])
 		if err != nil {
 			t.Fatalf("failed to create product: %s", err.Error())
-		} else if resp.StatusCode != http.StatusOK {
+		} else if resp.StatusCode != http.StatusCreated {
 			t.Fatalf("failed to create product: %s", resp.Status)
 		}
 	}
@@ -77,7 +79,7 @@ func Test_ReceptionCycle(t *testing.T) {
 		t.Fatalf("closeReceptionRequest returned wrong status code: %d", closeResp.StatusCode)
 	}
 
-	var reception models.Reception
+	var reception Reception
 	dec = json.NewDecoder(closeResp.Body)
 	err = dec.Decode(&reception)
 	if err != nil {
@@ -85,12 +87,12 @@ func Test_ReceptionCycle(t *testing.T) {
 	}
 
 	t.Log(reception)
-	if reception.PvzID != pvz.ID {
-		t.Fatalf("reception returned with wrong pvz id: %s", reception.PvzID)
-	} else if reception.ReceptionStatus != "closed" {
-		t.Fatalf("reception returned with wrong status: %s", reception.ReceptionStatus)
-	} else if reception.ID == "" {
-		t.Fatalf("reception returned with empty id: %s", reception.ID)
+	if reception.PvzId.String() != pvz.ID {
+		t.Fatalf("reception returned with wrong pvz id: %s", reception.PvzId.String())
+	} else if reception.Status != "closed" {
+		t.Fatalf("reception returned with wrong status: %s", reception.Status)
+	} else if reception.Id == nil {
+		t.Fatalf("reception returned with empty id")
 	}
 
 }
@@ -109,18 +111,17 @@ func Test_DummyLogin(t *testing.T) {
 }
 
 func Test_RegisterLogin(t *testing.T) {
-	employee1Creds := `{"email":"user@example.com","password":"password","role":"employee"}`
-	employee2Creds := `{"email":"user@example.com","password":"password","role":"employee"}`
-	moderatorCreds := `{"email":"moder@example.com","password":"password","role":"moderator"}`
+	employeeCreds := fmt.Sprintf(`{"email":"user-%s@example.com","password":"password","role":"employee"}`, lo.RandomString(5, lo.AlphanumericCharset))
+	moderatorCreds := fmt.Sprintf(`{"email":"moder-%s@example.com","password":"password","role":"moderator"}`, lo.RandomString(5, lo.AlphanumericCharset))
 
 	// register
-	employee1RegisterResponse, err := registerRequest(employee1Creds)
+	employee1RegisterResponse, err := registerRequest(employeeCreds)
 	if err != nil {
 		t.Fatal(err)
-	} else if employee1RegisterResponse.StatusCode != http.StatusOK {
+	} else if employee1RegisterResponse.StatusCode != http.StatusCreated {
 		t.Fatalf("Unexpected status code: %d", employee1RegisterResponse.StatusCode)
 	}
-	employee2RegisterResponse, err := registerRequest(employee2Creds)
+	employee2RegisterResponse, err := registerRequest(employeeCreds)
 	if err != nil {
 		t.Fatal(err)
 	} else if employee2RegisterResponse.StatusCode == http.StatusOK {
@@ -129,7 +130,7 @@ func Test_RegisterLogin(t *testing.T) {
 	moderatorRegisterResponse, err := registerRequest(moderatorCreds)
 	if err != nil {
 		t.Fatal(err)
-	} else if moderatorRegisterResponse.StatusCode != http.StatusOK {
+	} else if moderatorRegisterResponse.StatusCode != http.StatusCreated {
 		t.Fatalf("Unexpected status code: %d", moderatorRegisterResponse.StatusCode)
 	}
 
@@ -141,7 +142,7 @@ func Test_RegisterLogin(t *testing.T) {
 	if employee1LoginResponse.StatusCode != http.StatusUnauthorized {
 		t.Fatalf("wrong password should lead to unauthorized request")
 	}
-	employee1LoginResponse, err = loginRequest(employee1Creds)
+	employee1LoginResponse, err = loginRequest(employeeCreds)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -182,7 +183,7 @@ func testTokenPermissions(t *testing.T, employeeToken, moderatorToken string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if moderatorResponse.StatusCode != http.StatusOK {
+	if moderatorResponse.StatusCode != http.StatusCreated {
 		t.Fatalf("Employee should have been permitted to create new pvz, code: %d", moderatorResponse.StatusCode)
 	}
 }

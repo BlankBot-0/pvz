@@ -6,6 +6,7 @@ import (
 	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"net/http"
 	"pvz/internal/auth"
 	"pvz/internal/usecase/pvz"
 	pvzpb "pvz/pkg/api/v1"
@@ -35,6 +36,7 @@ func (s *Service) CreatePVZ(ctx context.Context, req *pvzpb.CreatePVZRequest) (*
 		return nil, status.Errorf(codes.Internal, "unexpected error while creating pvz: %s", err.Error())
 	}
 
+	SetHTTPCode(ctx, http.StatusCreated)
 	observeCreatedPVZ(req.City)
 	return &pvzpb.CreatePVZResponse{
 		Pvz: &pvzpb.PVZ{
