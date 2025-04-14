@@ -35,6 +35,7 @@ func (s *Service) CreatePVZ(ctx context.Context, req *pvzpb.CreatePVZRequest) (*
 		return nil, status.Errorf(codes.Internal, "unexpected error while creating pvz: %s", err.Error())
 	}
 
+	observeCreatedPVZ(req.City)
 	return &pvzpb.CreatePVZResponse{
 		Pvz: &pvzpb.PVZ{
 			Id:               &res.ID,

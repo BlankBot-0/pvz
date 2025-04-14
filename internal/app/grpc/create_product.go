@@ -27,6 +27,7 @@ func (s *Service) CreateProduct(ctx context.Context, request *pvzpb.CreateProduc
 		return nil, status.Errorf(codes.Internal, "unexpected error while creating pvz: %s", err.Error())
 	}
 
+	observeCreatedProducts(request.Type)
 	return &pvzpb.CreateProductResponse{Product: &pvzpb.Product{
 		Id:          res.ID,
 		DateTime:    timestamppb.New(res.DateTime),

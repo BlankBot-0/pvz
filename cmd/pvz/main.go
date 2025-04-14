@@ -25,7 +25,6 @@ import (
 	pvzpb "pvz/pkg/api/v1"
 	"pvz/pkg/closer"
 	"syscall"
-	"time"
 )
 
 func main() {
@@ -52,7 +51,7 @@ func main() {
 		return nil
 	})
 
-	conn, err := postgres.Connect(ctx, "postgresql://postgres:password@localhost:5432/pvz") //cfg.Dsn)
+	conn, err := postgres.Connect(ctx, cfg.Dsn)
 	if err != nil {
 		log.Fatalf("db connection failed: %s", err)
 	}
@@ -104,20 +103,14 @@ func main() {
 	}
 	go runHttpServer(cfg.HTTPServer, httpServer)
 
-	obsCfg := config.HTTPServer{
-		Port:        "9000",
-		Timeout:     5 * time.Second,
-		IdleTimeout: 10 * time.Second,
-	}
-	obsPort := obsCfg.Port
 	obsMux := http.NewServeMux()
 	obsMux.Handle("/metrics", promhttp.Handler())
 	obsServer := &http.Server{
-		Addr:    fmt.Sprintf(":%s", obsPort),
+		Addr:    fmt.Sprintf(":%s", cfg.OBSServer.Port),
 		Handler: obsMux,
 	}
 	c.Add(obsServer.Close)
-	go runHttpServer(obsCfg, obsServer)
+	go runHttpServer(cfg.OBSServer, obsServer)
 
 	<-ctx.Done()
 	logger.Info("grpc and http servers shut down gracefully")

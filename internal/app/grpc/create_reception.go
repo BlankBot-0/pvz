@@ -25,6 +25,7 @@ func (s *Service) CreateReception(ctx context.Context, request *pvzpb.CreateRece
 		return nil, status.Errorf(codes.Internal, "unexpected error while creating reception: %s", err.Error())
 	}
 
+	observeCreatedReceptions(request.PvzId)
 	return &pvzpb.CreateReceptionResponse{
 		Reception: &pvzpb.Reception{
 			Id:       res.ID,
