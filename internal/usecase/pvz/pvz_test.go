@@ -26,6 +26,7 @@ func (c constUUIDGenerator) GenerateUUID(_ context.Context) string {
 }
 
 func TestPVZ_ListPVZPaginated_Ok(t *testing.T) {
+	t.Parallel()
 	dbMock := pgmocks.NewDBMock(t)
 
 	uc := New(Deps{
@@ -105,6 +106,7 @@ func TestPVZ_ListPVZPaginated_Ok(t *testing.T) {
 }
 
 func TestPVZ_ListPVZ_Ok(t *testing.T) {
+	t.Parallel()
 	dbMock := pgmocks.NewDBMock(t)
 
 	uc := New(Deps{
@@ -135,6 +137,7 @@ func TestPVZ_ListPVZ_Ok(t *testing.T) {
 }
 
 func TestPVZ_CreatePVZ_Ok(t *testing.T) {
+	t.Parallel()
 	dbMock := pgmocks.NewDBMock(t)
 
 	uc := New(Deps{
@@ -163,6 +166,7 @@ func TestPVZ_CreatePVZ_Ok(t *testing.T) {
 }
 
 func TestPVZ_CreatePVZ_Ok_WithCustomFields(t *testing.T) {
+	t.Parallel()
 	dbMock := pgmocks.NewDBMock(t)
 
 	uc := New(Deps{
@@ -191,6 +195,7 @@ func TestPVZ_CreatePVZ_Ok_WithCustomFields(t *testing.T) {
 }
 
 func TestPVZ_CreateReception_Ok(t *testing.T) {
+	t.Parallel()
 	dbMock := pgmocks.NewDBMock(t)
 
 	uc := New(Deps{
@@ -226,6 +231,7 @@ func TestPVZ_CreateReception_Ok(t *testing.T) {
 }
 
 func TestPVZ_CloseLastReception_Ok(t *testing.T) {
+	t.Parallel()
 	dbMock := pgmocks.NewDBMock(t)
 
 	uc := New(Deps{
@@ -259,6 +265,7 @@ func TestPVZ_CloseLastReception_Ok(t *testing.T) {
 }
 
 func TestPVZ_CreateProduct_Ok(t *testing.T) {
+	t.Parallel()
 	dbMock := pgmocks.NewDBMock(t)
 
 	uc := New(Deps{
@@ -299,6 +306,7 @@ func TestPVZ_CreateProduct_Ok(t *testing.T) {
 }
 
 func TestPVZ_DeleteLastProduct_Ok(t *testing.T) {
+	t.Parallel()
 	dbMock := pgmocks.NewDBMock(t)
 
 	uc := New(Deps{

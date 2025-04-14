@@ -35,6 +35,7 @@ func TestCreatePVZ_UnexpectedRole(t *testing.T) {
 }
 
 func TestCreatePVZ_Ok(t *testing.T) {
+	t.Parallel()
 	ctx := auth.SetUserRoleToCtx(context.Background(), moderatorRole)
 
 	request := &pvzpb.CreatePVZRequest{City: DefaultCity}
@@ -54,6 +55,7 @@ func TestCreatePVZ_Ok(t *testing.T) {
 }
 
 func TestCreatePVZ_Ok_WithCustomDate(t *testing.T) {
+	t.Parallel()
 	ctx := auth.SetUserRoleToCtx(context.Background(), moderatorRole)
 
 	service, pvzMock, _ := newService(t)

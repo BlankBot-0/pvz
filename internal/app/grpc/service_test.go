@@ -8,6 +8,7 @@ import (
 var dateFormat = "2006-01-02T15:04:05Z"
 
 func newService(t *testing.T) (*Service, *mocks.PVZMock, *mocks.AuthMock) {
+	t.Parallel()
 	pvzMock := mocks.NewPVZMock(t)
 	authMock := mocks.NewAuthMock(t)
 

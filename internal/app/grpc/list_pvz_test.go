@@ -27,6 +27,7 @@ func TestListPVZ_UnexpectedRole(t *testing.T) {
 	}
 }
 func TestListPVZ_Ok(t *testing.T) {
+	t.Parallel()
 	ctx := auth.SetUserRoleToCtx(context.Background(), moderatorRole)
 
 	request := &pvzpb.ListPVZRequest{
