@@ -5,6 +5,7 @@ go 1.24
 require (
 	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/georgysavva/scany/v2 v2.1.4
+	github.com/go-test/deep v1.0.8
 	github.com/gojuno/minimock/v3 v3.4.5
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
