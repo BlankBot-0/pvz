@@ -11,27 +11,6 @@ type roUsers struct {
 	query querier
 }
 
-func (ro *roUsers) UserByID(ctx context.Context, userId string) (models.User, error) {
-	const queryName = "UsersRepository/UserCoins"
-	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
-	defer span.Finish()
-
-	const q = `
-        select users.id, users.email, users.password_hash, roles.name
-        from users
-        join roles on roles.id = users.role_id
-        where users.id = $1`
-
-	var user models.User
-	if err := pgxscan.Get(ctx, ro.query, &user, q, userId); errIsNoRows(err) {
-		return user, handleError(queryName, ErrNotFound)
-	} else if err != nil {
-		return user, handleError(queryName, err)
-	}
-
-	return user, nil
-}
-
 func (ro *roUsers) UserByEmail(ctx context.Context, email string) (models.User, error) {
 	const queryName = "UsersRepository/UserByEmail"
 	span, ctx := opentracing.StartSpanFromContext(ctx, queryName)
