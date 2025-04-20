@@ -16,7 +16,8 @@ func TestMain(m *testing.M) {
     truncate
 		pvzs,
 		receptions,
-		products
+		products,
+		users
     cascade
   `
 

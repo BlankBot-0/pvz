@@ -51,7 +51,7 @@ func (a *AuthService) UserToken(ctx context.Context, email, password string) (st
 
 	token, err := a.Deps.Issuer.Issue(tokenInfo.Role)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to issue token: %w", err)
 	}
 	return token, nil
 }
@@ -72,7 +72,7 @@ func (a *AuthService) Register(ctx context.Context, email, password, role string
 	} else if errors.Is(err, postgres.ErrInvalidReference) {
 		return models.User{}, ErrInvalidRole
 	} else if err != nil {
-		return models.User{}, err
+		return models.User{}, fmt.Errorf("could not create user: %w", err)
 	}
 
 	return models.User{

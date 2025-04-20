@@ -32,7 +32,6 @@ type (
 	}
 
 	ROUsers interface {
-		UserByID(ctx context.Context, userId string) (models.User, error)
 		UserByEmail(ctx context.Context, email string) (models.User, error)
 		ValidateRole(ctx context.Context, role string) error
 	}
